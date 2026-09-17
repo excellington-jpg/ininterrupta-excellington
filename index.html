@@ -157,9 +157,11 @@
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
           <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Como habilitar a gravação na planilha:</strong>
           <ol class="list-decimal pl-4 space-y-1">
-            Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, cole o código atualizado abaixo, clique em <strong>Implantar > Gerenciar implantações</strong> (ou <em>Nova implantação</em>) (tipo: <em>Aplicativo da Web</em>, acesso: <em>Qualquer pessoa</em>) e cole a URL gerada no campo acima. Lembre-se de gerar uma <strong>Nova versão</strong> a cada alteração.
+            <li>Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, substitua o código pelo código atualizado abaixo.</li>
+            <li>Clique em <strong>Implantar > Gerenciar implantações</strong>, clique no ícone de lápis (Editar), selecione <strong>Nova versão</strong> e clique em <em>Implantar</em>.</li>
+            <li>Certifique-se de que o acesso esteja definido como <strong>Qualquer pessoa</strong>. Cole a URL no campo acima.</li>
           </ol>
-          <textarea readonly class="w-full h-24 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doPost(e) {
+          <textarea readonly class="w-full h-28 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
   try {
@@ -179,18 +181,39 @@
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName(church);
-    if (!sheet) sheet = ss.insertSheet(church);
+    if (!sheet) {
+      sheet = ss.insertSheet(church);
+      sheet.appendRow(["Horário", "Membro"]);
+    }
+    
     var rows = sheet.getDataRange().getValues();
     var rowIndex = -1;
     for (var i = 0; i < rows.length; i++) {
-      if (String(rows[i][0]).trim() === String(time).trim()) { rowIndex = i + 1; break; }
+      var cellVal = rows[i][0];
+      var cellTimeStr = "";
+      if (cellVal instanceof Date) {
+        cellTimeStr = Utilities.formatDate(cellVal, Session.getScriptTimeZone(), "HH:mm");
+      } else {
+        cellTimeStr = String(cellVal).trim();
+      }
+      if (cellTimeStr === String(time).trim()) {
+        rowIndex = i + 1;
+        break;
+      }
     }
-    if (rowIndex > -1) { sheet.getRange(rowIndex, 2).setValue(member); }
-    else { sheet.appendRow([time, member]); }
+    
+    if (rowIndex > -1) {
+      sheet.getRange(rowIndex, 2).setValue(member);
+    } else {
+      sheet.appendRow([time, member]);
+    }
+    
     return ContentService.createTextOutput(JSON.stringify({ "status": "success" })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  } finally { lock.releaseLock(); }
+  } finally {
+    lock.releaseLock();
+  }
 }</textarea>
         </div>
         <div class="flex space-x-2 pt-2">
@@ -457,6 +480,8 @@
 
     // Submissão: Grava na planilha via Apps Script Web App (se configurado)
     document.getElementById('btnSubmit').addEventListener('click', async () => {
+    // Submissão: Grava na planilha via Apps Script Web App (com JSON e text/plain)
+    document.getElementById('btnSubmit').addEventListener('click', async () => {
       const church = selectChurch.value;
       const time = selectTime.value;
       const member = document.getElementById('inputMember').value.trim();
@@ -476,15 +501,13 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando na planilha...';
 
       try {
-        const formData = new URLSearchParams();
-        formData.append('church', church);
-        formData.append('time', time);
-        formData.append('member', member);
-
         await fetch(scriptUrl, {
           method: 'POST',
           mode: 'no-cors',
-          body: formData
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+          },
+          body: JSON.stringify({ church, time, member })
         });
 
         if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
