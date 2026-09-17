@@ -44,7 +44,7 @@
         <h2 class="text-lg font-semibold text-red-800 flex items-center">
           Programação de horários
         </h2>
-        <span id="syncStatus" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">Conectando à planilha...</span>
+        <span id="syncStatus" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">Carregando...</span>
       </div>
       <p class="text-sm text-red-600 mb-4">Selecione a igreja, escolha um horário vago e informe o nome do membro para registrar.</p>
       
@@ -52,7 +52,7 @@
       <div class="mb-4">
         <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Igreja (Guia da Planilha)</label>
         <select id="selectChurch" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <option value="">Carregando igrejas da planilha...</option>
+          <option value="">Carregando igrejas...</option>
         </select>
       </div>
 
@@ -76,15 +76,16 @@
         <span>Salvar nome do membro na planilha</span>
       </button>
 
-      <!-- Prayer Period Selector (Now below the save button and optional) -->
+      <!-- Prayer Period Selector (Below save button and optional) -->
       <div class="mb-2">
         <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Período de Oração (Guia PERÍODOS - Coluna A) <span class="text-gray-400 font-normal">(Opcional)</span></label>
         <select id="selectPeriod" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <option value="">Carregando períodos da guia PERÍODOS...</option>
+          <option value="">Selecione o período de oração...</option>
         </select>
       </div>
     </div>
 
+    <!-- Motives Container -->
     <div id="motivesContainer" class="bg-white border border-red-200 rounded-xl shadow-sm p-5 hidden">
       <h3 class="text-md font-bold text-red-800 mb-3 border-b border-red-100 pb-2 flex items-center">
         <i class="fa-solid fa-book-open mr-2 text-red-600"></i> Motivos de Oração da Planilha
@@ -101,6 +102,7 @@
     </div>
   </main>
 
+  <!-- Notification Modal -->
   <div id="modalNotification" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-red-100 text-center">
       <div id="notifIcon" class="text-3xl text-red-600 mb-3"><i class="fa-solid fa-circle-check"></i></div>
@@ -110,6 +112,7 @@
     </div>
   </div>
 
+  <!-- Terms Modal -->
   <div id="modalTerms" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-red-100">
       <div class="flex justify-between items-center mb-4">
@@ -121,7 +124,7 @@
         </button>
       </div>
       <div class="text-sm text-gray-700 space-y-3 max-h-96 overflow-y-auto pr-2">
-        <p>1. O aplicativo <strong>Oração Ininterrupta</strong> lê automaticamente todas as guias de igrejas iniciadas com "ICM".</p>
+        <p>1. O aplicativo <strong>Oração Ininterrupta</strong> lê e preenche as guias de igrejas iniciadas com "ICM".</p>
         <p>2. Para que o salvamento atualize diretamente a sua planilha do Google Sheets, é necessário configurar a URL do Web App do Google Apps Script nas configurações.</p>
       </div>
       <div class="mt-6 text-right">
@@ -130,6 +133,7 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
   <div id="modalSettings" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
     <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-red-100 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -148,139 +152,70 @@
         <div>
           <label class="block font-semibold text-red-800 mb-1">URL do Web App do Google Apps Script (Escrita/Gravação)</label>
           <input type="text" id="inputScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <p class="text-[11px] text-gray-500 mt-1">Necessário para gravar os nomes diretamente na planilha. Veja as instruções abaixo.</p>
+          <p class="text-[11px] text-gray-500 mt-1">Necessário para gravar os nomes diretamente na planilha. Veja o código abaixo.</p>
         </div>
         <div>
           <label class="block font-semibold text-red-800 mb-1">Igrejas (Nomes das Guias, separados por vírgula)</label>
           <input type="text" id="inputChurchesList" placeholder="Ex: ICM ALVORADA, ICM CERÂMICA" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
         </div>
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
-        <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Como habilitar leitura e gravação na planilha:</strong>
-        <ol class="list-decimal pl-4 space-y-1">
-          <li>Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, substitua o código pelo script unificado abaixo.</li>
-          <li>Clique em <strong>Implantar > Gerenciar implantações</strong>, clique no ícone de lápis (Editar), selecione <strong>Nova versão</strong> e clique em <em>Implantar</em>.</li>
-          <li>Certifique-se de que o acesso esteja definido como <strong>Qualquer pessoa</strong>. Cole a URL do Web App no campo acima.</li>
-        </ol>
-        <textarea readonly class="w-full h-32 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doGet(e) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheets = ss.getSheets();
-    var data = { churches: [], occupied: {}, periods: [] };
-    
-    var periodSheet = ss.getSheetByName("PERÍODOS");
-    if (periodSheet) {
-      var pRows = periodSheet.getDataRange().getValues();
-      for (var i = 1; i < pRows.length; i++) {
-        var r = pRows[i];
-        if (r[0]) {
-          var motives = [];
-          for (var j = 2; j < r.length; j++) {
-            motives.push(r[j] !== undefined && r[j] !== null ? String(r[j]) : "");
-          }
-          data.periods.push({
-            name: String(r[0]),
-            main: r[1] ? String(r[1]) : "",
-            motives: motives
-          });
-        }
+          <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Código para o Google Apps Script:</strong>
+          <p class="mb-1">Cole este código no Apps Script da sua planilha (Extensões > Apps Script) e implante como Web App ("Qualquer pessoa").</p>
+          <textarea readonly class="w-full h-28 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  var data = { churches: [], occupied: {}, periods: [] };
+  var pSheet = ss.getSheetByName("PERÍODOS");
+  if (pSheet) {
+    var rows = pSheet.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][0]) {
+        var motives = [];
+        for (var j = 2; j < rows[i].length; j++) motives.push(String(rows[i][j] || ""));
+        data.periods.push({ name: String(rows[i][0]), main: String(rows[i][1] || ""), motives: motives });
       }
     }
-    
-    sheets.forEach(function(sheet) {
-      var name = sheet.getName();
-      if (name !== "PERÍODOS") {
-        data.churches.push(name);
-        data.occupied[name] = {};
-        var rows = sheet.getDataRange().getValues();
-        for (var i = 0; i < rows.length; i++) {
-          var timeVal = "";
-          var memberVal = "";
-          for (var c = 0; c < rows[i].length; c++) {
-            var valStr = String(rows[i][c]).trim();
-            if (/^\d{2}:\d{2}$/.test(valStr)) {
-              timeVal = valStr;
-            } else if (c > 0 && timeVal && !memberVal) {
-              memberVal = valStr;
-            }
-          }
-          if (!timeVal && rows[i][0]) {
-            var v0 = String(rows[i][0]).trim();
-            if (/^\d{2}:\d{2}$/.test(v0)) timeVal = v0;
-          }
-          if (!memberVal && rows[i][1]) {
-            var v1 = String(rows[i][1]).trim();
-            if (v1 && v1 !== timeVal) memberVal = v1;
-          }
-          if (timeVal && memberVal) {
-            data.occupied[name][timeVal] = memberVal;
-          }
-        }
-      }
-    });
-
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
   }
+  sheets.forEach(function(s) {
+    var name = s.getName();
+    if (name !== "PERÍODOS" && name.indexOf("ICM") === 0) {
+      data.churches.push(name);
+      data.occupied[name] = {};
+      var r = s.getDataRange().getValues();
+      r.forEach(function(row) {
+        var t = "", m = "";
+        row.forEach(function(cell, idx) {
+          var val = String(cell || "").trim();
+          if (/^\d{2}:\d{2}$/.test(val)) t = val;
+          else if (idx > 0 && t && !m) m = val;
+        });
+        if (t && m) data.occupied[name][t] = m;
+      });
+    }
+  });
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
-
 function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
   try {
-    var church = "", time = "", member = "";
-    if (e.parameter && e.parameter.church) {
-      church = e.parameter.church;
-      time = e.parameter.time;
-      member = e.parameter.member;
-    } else if (e.postData && e.postData.contents) {
-      try {
-        var data = JSON.parse(e.postData.contents);
-        church = data.church;
-        time = data.time;
-        member = data.member;
-      } catch(err) {}
-    }
-
+    var data = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(church);
-    if (!sheet) {
-      sheet = ss.insertSheet(church);
-      sheet.appendRow(["Horário", "Membro"]);
-    }
-    
+    var sheet = ss.getSheetByName(data.church);
+    if (!sheet) { sheet = ss.insertSheet(data.church); sheet.appendRow(["Horário", "Membro"]); }
     var rows = sheet.getDataRange().getValues();
-    var rowIndex = -1;
+    var rowIdx = -1;
     for (var i = 0; i < rows.length; i++) {
-      var cellVal = rows[i][0];
-      var cellTimeStr = "";
-      if (cellVal instanceof Date) {
-        cellTimeStr = Utilities.formatDate(cellVal, Session.getScriptTimeZone(), "HH:mm");
-      } else {
-        cellTimeStr = String(cellVal).trim();
-      }
-      if (cellTimeStr === String(time).trim()) {
-        rowIndex = i + 1;
-        break;
-      }
+      if (String(rows[i][0]).trim() === String(data.time).trim()) { rowIdx = i + 1; break; }
     }
-    
-    if (rowIndex > -1) {
-      sheet.getRange(rowIndex, 2).setValue(member);
-    } else {
-      sheet.appendRow([time, member]);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({ "status": "success" })).setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
+    if (rowIdx > -1) sheet.getRange(rowIdx, 2).setValue(data.member);
+    else sheet.appendRow([data.time, data.member]);
+    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  } finally { lock.releaseLock(); }
 }</textarea>
-      </div>
+        </div>
         <div class="flex space-x-2 pt-2">
           <button id="btnResetDefault" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Restaurar Padrão</button>
           <button id="btnSaveSettings" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Salvar Configurações</button>
@@ -306,18 +241,11 @@ function doPost(e) {
     let sheetUrl = localStorage.getItem('oracao_sheet_url') || DEFAULT_URL;
     let scriptUrl = localStorage.getItem('oracao_script_url') || "";
 
-    function extractSpreadsheetId(url) {
-      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      return match ? match[1] : "1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck";
-    }
-
     function generateTimeSlots() {
       const slots = [];
       for (let h = 0; h < 24; h++) {
         for (let m = 0; m < 60; m += 15) {
-          const hourStr = String(h).padStart(2, '0');
-          const minStr = String(m).padStart(2, '0');
-          slots.push(`${hourStr}:${minStr}`);
+          slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
         }
       }
       return slots;
@@ -350,17 +278,16 @@ function doPost(e) {
     });
 
     async function loadSpreadsheetData() {
-      const sheetId = extractSpreadsheetId(sheetUrl);
-      syncStatus.textContent = "Sincronizando com a planilha...";
+      syncStatus.textContent = "Carregando dados...";
       syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
 
-      let loadedSuccessfully = false;
+      let loaded = false;
 
-      // 1. Tentar carregar via Web App (doGet) se a URL do script estiver configurada (Evita CORS)
+      // Tentar via Apps Script Web App se configurado
       if (scriptUrl) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
           const res = await fetch(scriptUrl, { signal: controller.signal });
           clearTimeout(timeoutId);
           if (res.ok) {
@@ -369,135 +296,30 @@ function doPost(e) {
               sheetData.churches = data.churches;
               sheetData.occupied = data.occupied || {};
               sheetData.periods = data.periods || [];
-              loadedSuccessfully = true;
+              loaded = true;
             }
           }
-        } catch (err) {
-          console.warn("Aviso ao carregar via Apps Script Web App:", err);
+        } catch (e) {
+          console.warn("Script URL timeout or error:", e);
         }
       }
 
-      // 2. Se não carregou via Script, tentar GViz com timeout de segurança
-      if (!loadedSuccessfully) {
-        try {
-          const fetchWithTimeout = async (url, timeout = 5000) => {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-            try {
-              const response = await fetch(url, { signal: controller.signal });
-              clearTimeout(id);
-              return response;
-            } catch (e) {
-              clearTimeout(id);
-              throw e;
-            }
-          };
-
-          const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=PERÍODOS`;
-          const response = await fetchWithTimeout(gvizUrl, 5000);
-          if (response.ok) {
-            const text = await response.text();
-            const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
-            if (jsonMatch && jsonMatch[1]) {
-              const data = JSON.parse(jsonMatch[1]);
-              if (data.table && data.table.rows && data.table.rows.length > 1) {
-                const loadedPeriods = [];
-                for (let i = 1; i < data.table.rows.length; i++) {
-                  const row = data.table.rows[i];
-                  const c = row.c;
-                  if (c && c[0] && c[0].v) {
-                    const periodName = String(c[0].v);
-                    const mainMotive = c[1] && c[1].v ? String(c[1].v) : "";
-                    const motives = [];
-                    for (let j = 2; j < 16; j++) {
-                      motives.push(c[j] && c[j].v !== null && c[j].v !== undefined ? String(c[j].v) : "");
-                    }
-                    loadedPeriods.push({
-                      name: periodName,
-                      main: mainMotive,
-                      motives: motives
-                    });
-                  }
-                }
-                if (loadedPeriods.length > 0) {
-                  sheetData.periods = loadedPeriods;
-                }
-              }
-            }
+      // Fallback imediato se não carregou ou se scriptUrl não está configurado
+      if (!loaded) {
+        const savedChurches = localStorage.getItem('oracao_churches');
+        sheetData.churches = savedChurches ? savedChurches.split(',').map(s => s.trim()).filter(Boolean) : ["ICM ALVORADA", "ICM CERÂMICA"];
+        sheetData.occupied = {};
+        sheetData.periods = [
+          {
+            name: "Período 1: Madrugada de Oração",
+            main: "Clamor pela unidade da igreja e avivamento espiritual.",
+            motives: ["Pelos pastores e familiares", "Pela obra do Senhor", "Pelos enfermos", "Pela conversão de almas", "Pela paz nas famílias"]
           }
-
-          let configuredChurches = [];
-          const savedChurchesStr = localStorage.getItem('oracao_churches');
-          if (savedChurchesStr) {
-            configuredChurches = savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean);
-          } else {
-            configuredChurches = ["ICM ALVORADA", "ICM CERÂMICA"];
-          }
-
-          sheetData.churches = configuredChurches;
-          sheetData.occupied = {};
-
-          for (const churchName of configuredChurches) {
-            try {
-              const churchUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(churchName)}`;
-              const res = await fetchWithTimeout(churchUrl, 4000);
-              if (res.ok) {
-                const txt = await res.text();
-                const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
-                if (match && match[1]) {
-                  const cData = JSON.parse(match[1]);
-                  if (cData && cData.status === 'ok' && cData.table && cData.table.rows) {
-                    sheetData.occupied[churchName] = {};
-                    for (let i = 0; i < cData.table.rows.length; i++) {
-                      const r = cData.table.rows[i];
-                      if (r && r.c) {
-                        let timeVal = "";
-                        let memberVal = "";
-                        r.c.forEach((cell, colIdx) => {
-                          if (cell && cell.v !== null && cell.v !== undefined) {
-                            const valStr = String(cell.v).trim();
-                            if (/^\d{2}:\d{2}$/.test(valStr)) {
-                              timeVal = valStr;
-                            } else if (colIdx > 0 && timeVal && !memberVal) {
-                              memberVal = valStr;
-                            }
-                          }
-                        });
-                        if (!timeVal && r.c[0] && r.c[0].v) {
-                          const v0 = String(r.c[0].v).trim();
-                          if (/^\d{2}:\d{2}$/.test(v0)) timeVal = v0;
-                        }
-                        if (!memberVal && r.c[1] && r.c[1].v) {
-                          const v1 = String(r.c[1].v).trim();
-                          if (v1 && v1 !== timeVal) memberVal = v1;
-                        }
-
-                        if (timeVal && memberVal) {
-                          sheetData.occupied[churchName][timeVal] = memberVal;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            } catch (err) {
-              console.warn(`Aviso ao carregar igreja ${churchName}:`, err);
-            }
-          }
-          loadedSuccessfully = true;
-        } catch (err) {
-          console.warn("GViz falhou ou bloqueado por CORS:", err);
-        }
-      }
-
-      // 3. Fallback final se nada carregar (garante que nunca trava a tela)
-      if (!loadedSuccessfully || sheetData.churches.length === 0) {
-        const savedChurchesStr = localStorage.getItem('oracao_churches');
-        sheetData.churches = savedChurchesStr ? savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean) : ["ICM ALVORADA", "ICM CERÂMICA"];
-        syncStatus.textContent = scriptUrl ? "Erro de conexão com Script" : "Modo padrão (Configure o Script)";
-        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
+        ];
+        syncStatus.textContent = scriptUrl ? "Modo Offline (Verifique Script)" : "Pronto (Configure o Script para Gravação)";
+        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
       } else {
-        syncStatus.textContent = "Planilha sincronizada";
+        syncStatus.textContent = "Sincronizado";
         syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium";
       }
 
@@ -516,7 +338,7 @@ function doPost(e) {
     }
 
     function initPeriods() {
-      selectPeriod.innerHTML = '<option value="">Selecione o período de oração (opcional)...</option>';
+      selectPeriod.innerHTML = '<option value="">Selecione o período de oração...</option>';
       sheetData.periods.forEach((p, idx) => {
         const opt = document.createElement('option');
         opt.value = idx;
@@ -589,9 +411,6 @@ function doPost(e) {
       }
     });
 
-    // Submissão: Grava na planilha via Apps Script Web App (se configurado)
-    document.getElementById('btnSubmit').addEventListener('click', async () => {
-    // Submissão: Grava na planilha via Apps Script Web App (com JSON e text/plain)
     document.getElementById('btnSubmit').addEventListener('click', async () => {
       const church = selectChurch.value;
       const time = selectTime.value;
@@ -615,9 +434,7 @@ function doPost(e) {
         await fetch(scriptUrl, {
           method: 'POST',
           mode: 'no-cors',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-          },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ church, time, member })
         });
 
@@ -667,7 +484,7 @@ function doPost(e) {
 
       modalSettings.classList.add('hidden');
       loadSpreadsheetData();
-      showNotification('Configurações salvas e planilha sincronizada com sucesso!', 'Configuração');
+      showNotification('Configurações salvas com sucesso!', 'Configuração');
     });
 
     document.getElementById('btnResetDefault').addEventListener('click', () => {
