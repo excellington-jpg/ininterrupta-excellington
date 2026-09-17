@@ -157,23 +157,36 @@
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
           <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Como habilitar a gravação na planilha:</strong>
           <ol class="list-decimal pl-4 space-y-1">
-            Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, cole o código abaixo, clique em <strong>Implantar > Nova implantação</strong> (tipo: <em>Aplicativo da Web</em>, acesso: <em>Qualquer pessoa</em>) e cole a URL gerada no campo acima.
+            Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, cole o código atualizado abaixo, clique em <strong>Implantar > Gerenciar implantações</strong> (ou <em>Nova implantação</em>) (tipo: <em>Aplicativo da Web</em>, acesso: <em>Qualquer pessoa</em>) e cole a URL gerada no campo acima. Lembre-se de gerar uma <strong>Nova versão</strong> a cada alteração.
           </ol>
           <textarea readonly class="w-full h-24 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
   try {
-    var data = JSON.parse(e.postData.contents);
+    var church = "", time = "", member = "";
+    if (e.parameter && e.parameter.church) {
+      church = e.parameter.church;
+      time = e.parameter.time;
+      member = e.parameter.member;
+    } else if (e.postData && e.postData.contents) {
+      try {
+        var data = JSON.parse(e.postData.contents);
+        church = data.church;
+        time = data.time;
+        member = data.member;
+      } catch(err) {}
+    }
+
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(data.church);
-    if (!sheet) sheet = ss.insertSheet(data.church);
+    var sheet = ss.getSheetByName(church);
+    if (!sheet) sheet = ss.insertSheet(church);
     var rows = sheet.getDataRange().getValues();
     var rowIndex = -1;
     for (var i = 0; i < rows.length; i++) {
-      if (String(rows[i][0]).trim() === String(data.time).trim()) { rowIndex = i + 1; break; }
+      if (String(rows[i][0]).trim() === String(time).trim()) { rowIndex = i + 1; break; }
     }
-    if (rowIndex > -1) { sheet.getRange(rowIndex, 2).setValue(data.member); }
-    else { sheet.appendRow([data.time, data.member]); }
+    if (rowIndex > -1) { sheet.getRange(rowIndex, 2).setValue(member); }
+    else { sheet.appendRow([time, member]); }
     return ContentService.createTextOutput(JSON.stringify({ "status": "success" })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() })).setMimeType(ContentService.MimeType.JSON);
@@ -463,11 +476,15 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando na planilha...';
 
       try {
-        const response = await fetch(scriptUrl, {
+        const formData = new URLSearchParams();
+        formData.append('church', church);
+        formData.append('time', time);
+        formData.append('member', member);
+
+        await fetch(scriptUrl, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ church, time, member })
+          body: formData
         });
 
         if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
