@@ -1,0 +1,530 @@
+﻿
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oração Ininterrupta</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #fffaf0;
+      color: #7f1d1d;
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-red-50/20">
+  <header class="bg-red-800 text-white shadow-md p-4 flex justify-between items-center">
+    <div class="flex items-center space-x-2">
+      <i class="fa-solid fa-hands-praying text-2xl text-red-200"></i>
+      <h1 class="text-xl font-bold tracking-wide">Oração Ininterrupta</h1>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button id="btnTerms" title="Termos de Uso" class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+        <i class="fa-solid fa-file-contract"></i>
+        <span class="hidden sm:inline">Termos</span>
+      </button>
+      <button id="btnSettings" title="Configurar Planilha" class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+        <i class="fa-solid fa-gear"></i>
+        <span class="hidden sm:inline">Planilha</span>
+      </button>
+      <button id="btnClose" title="Fechar Janela" class="bg-red-950 hover:bg-black px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+        <i class="fa-solid fa-xmark"></i>
+        <span class="hidden sm:inline">Fechar</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container mx-auto p-4 max-w-3xl flex-grow">
+    <!-- Status Card -->
+    <div class="bg-white border border-red-200 rounded-xl shadow-sm p-5 mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-lg font-semibold text-red-800 flex items-center">
+          <i class="fa-solid fa-church mr-2 text-red-600"></i> Agendamento de Vigília
+        </h2>
+        <span id="syncStatus" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">Conectando à planilha...</span>
+      </div>
+      <p class="text-sm text-red-600 mb-4">Selecione a igreja (guia com "ICM"), escolha um horário vago e o período de oração conforme os dados oficiais.</p>
+      
+      <!-- Church Selector -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Igreja (Guia da Planilha)</label>
+        <select id="selectChurch" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+          <option value="">Carregando igrejas da planilha...</option>
+        </select>
+      </div>
+
+      <!-- Time Slot Selector -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Horário (24h - Intervalos de 15 min)</label>
+        <select id="selectTime" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500" disabled>
+          <option value="">Selecione uma igreja primeiro...</option>
+        </select>
+      </div>
+
+      <!-- Member Name Input -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Nome do Membro (Preenchimento)</label>
+        <input type="text" id="inputMember" placeholder="Digite seu nome completo para registrar no horário" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+      </div>
+
+      <!-- Prayer Period Selector -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Período de Oração (Guia PERÍODOS - Coluna A)</label>
+        <select id="selectPeriod" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+          <option value="">Carregando períodos da guia PERÍODOS...</option>
+        </select>
+      </div>
+
+      <!-- Save Button -->
+      <button id="btnSubmit" class="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-lg shadow transition flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-check"></i>
+        <span>Salvar Nome do Membro na Planilha</span>
+      </button>
+    </div>
+
+    <div id="motivesContainer" class="bg-white border border-red-200 rounded-xl shadow-sm p-5 hidden">
+      <h3 class="text-md font-bold text-red-800 mb-3 border-b border-red-100 pb-2 flex items-center">
+        <i class="fa-solid fa-book-open mr-2 text-red-600"></i> Motivos de Oração da Planilha
+      </h3>
+      <div class="space-y-3 text-sm text-red-900">
+        <div id="motiveMainBox" class="bg-red-50 p-3 rounded-lg border border-red-100 hidden">
+          <strong class="block text-red-800 mb-1"><i class="fa-solid fa-star mr-1"></i> Motivo Principal:</strong>
+          <p id="motiveMain" class="text-gray-700"></p>
+        </div>
+        <div id="motivesList" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <!-- Motivos carregados estritamente da planilha (vazios ficam ocultos) -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="modalNotification" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-red-100 text-center">
+      <div id="notifIcon" class="text-3xl text-red-600 mb-3"><i class="fa-solid fa-circle-check"></i></div>
+      <h3 id="notifTitle" class="text-lg font-bold text-red-900 mb-2">Aviso</h3>
+      <p id="notifMessage" class="text-sm text-gray-700 mb-6">Mensagem informativa.</p>
+      <button id="closeNotif" class="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded-lg text-sm font-semibold transition">OK</button>
+    </div>
+  </div>
+
+  <div id="modalTerms" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-red-100">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-red-800 flex items-center">
+          <i class="fa-solid fa-file-contract mr-2"></i> Termos de Uso e Responsabilidade
+        </h3>
+        <button id="closeTerms" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="text-sm text-gray-700 space-y-3 max-h-96 overflow-y-auto pr-2">
+        <p>1. O aplicativo <strong>Oração Ininterrupta</strong> lê automaticamente todas as guias de igrejas iniciadas com "ICM" (como ICM ALVORADA, ICM CERÂMICA e novas guias criadas).</p>
+        <p>2. A primeira linha da guia <strong>PERÍODOS</strong> é tratada como cabeçalho e ignorada no carregamento dos períodos de oração.</p>
+        <p>3. Os horários de 15 em 15 minutos são preenchidos conforme os registros de membros encontrados nas respectivas guias.</p>
+      </div>
+      <div class="mt-6 text-right">
+        <button id="acceptTerms" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalSettings" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-red-100">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-red-800 flex items-center">
+          <i class="fa-solid fa-gear mr-2"></i> Configuração da Planilha
+        </h3>
+        <button id="closeSettings" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-4 text-sm text-gray-700">
+        <div>
+          <label class="block font-semibold text-red-800 mb-1">URL da Planilha do Google Drive</label>
+          <input type="text" id="inputSheetUrl" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+        </div>
+        <div>
+          <label class="block font-semibold text-red-800 mb-1">Igrejas (Nomes das Guias, separados por vírgula)</label>
+          <input type="text" id="inputChurchesList" placeholder="Ex: ICM ALVORADA, ICM CERÂMICA" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+          <p class="text-[11px] text-gray-500 mt-1">Informe exatamente os nomes das guias (abas) de igrejas presentes na sua planilha.</p>
+        </div>
+        <div class="flex space-x-2">
+          <button id="btnResetDefault" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Restaurar Padrão</button>
+          <button id="btnSaveSettings" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Salvar Configurações</button>
+        </div>
+        <hr class="border-red-100 my-2">
+        <div>
+          <h4 class="font-semibold text-red-800 mb-1">Exportar Modelo Padrão</h4>
+          <p class="text-xs text-gray-600 mb-2">Baixe o modelo CSV estruturado para importação ou criação por outros usuários.</p>
+          <button id="btnExportTemplate" class="w-full bg-red-100 hover:bg-red-200 text-red-800 font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center space-x-2 border border-red-200">
+            <i class="fa-solid fa-download"></i>
+            <span>Exportar Modelo Padrão (CSV)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-red-50 text-red-800 text-center py-3 text-xs border-t border-red-100">
+    Oração Ininterrupta &copy; 2026 - Leitura e preenchimento integrado à planilha.
+  </footer>
+
+  <script>
+    const DEFAULT_URL = "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
+    let sheetUrl = localStorage.getItem('oracao_sheet_url') || DEFAULT_URL;
+
+    // Extrair ID da planilha do link do Google Drive
+    function extractSpreadsheetId(url) {
+      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : "1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck";
+    }
+
+    // Gerar 96 horários de 15 em 15 minutos (00:00 até 23:45)
+    function generateTimeSlots() {
+      const slots = [];
+      for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 15) {
+          const hourStr = String(h).padStart(2, '0');
+          const minStr = String(m).padStart(2, '0');
+          slots.push(`${hourStr}:${minStr}`);
+        }
+      }
+      return slots;
+    }
+
+    const timeSlots = generateTimeSlots();
+
+    let sheetData = {
+      churches: [],
+      occupied: {},
+      periods: []
+    };
+
+    const selectChurch = document.getElementById('selectChurch');
+    const selectTime = document.getElementById('selectTime');
+    const selectPeriod = document.getElementById('selectPeriod');
+    const motivesContainer = document.getElementById('motivesContainer');
+    const motiveMainBox = document.getElementById('motiveMainBox');
+    const motiveMain = document.getElementById('motiveMain');
+    const motivesList = document.getElementById('motivesList');
+    const syncStatus = document.getElementById('syncStatus');
+
+    function showNotification(message, title = "Aviso") {
+      document.getElementById('notifTitle').textContent = title;
+      document.getElementById('notifMessage').textContent = message;
+      document.getElementById('modalNotification').classList.remove('hidden');
+    }
+    document.getElementById('closeNotif').addEventListener('click', () => {
+      document.getElementById('modalNotification').classList.add('hidden');
+    });
+
+    // Função para carregar dados da planilha dinamicamente sem sondagem excessiva
+    async function loadSpreadsheetData() {
+      const sheetId = extractSpreadsheetId(sheetUrl);
+      syncStatus.textContent = "Sincronizando com a planilha...";
+      syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
+
+      try {
+        // 1. Carregar guia PERÍODOS
+        const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=PERÍODOS`;
+        const response = await fetch(gvizUrl);
+        if (response.ok) {
+          const text = await response.text();
+          const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+          if (jsonMatch && jsonMatch[1]) {
+            const data = JSON.parse(jsonMatch[1]);
+            if (data.table && data.table.rows && data.table.rows.length > 1) {
+              const loadedPeriods = [];
+              for (let i = 1; i < data.table.rows.length; i++) {
+                const row = data.table.rows[i];
+                const c = row.c;
+                if (c && c[0] && c[0].v) {
+                  const periodName = String(c[0].v);
+                  const mainMotive = c[1] && c[1].v ? String(c[1].v) : "";
+                  const motives = [];
+                  for (let j = 2; j < 16; j++) {
+                    motives.push(c[j] && c[j].v !== null && c[j].v !== undefined ? String(c[j].v) : "");
+                  }
+                  loadedPeriods.push({
+                    name: periodName,
+                    main: mainMotive,
+                    motives: motives
+                  });
+                }
+              }
+              if (loadedPeriods.length > 0) {
+                sheetData.periods = loadedPeriods;
+              }
+            }
+          }
+        }
+
+        // 2. Obter lista de igrejas (via configuração salva ou guia IGREJAS opcional)
+        let configuredChurches = [];
+        const savedChurchesStr = localStorage.getItem('oracao_churches');
+        if (savedChurchesStr) {
+          configuredChurches = savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean);
+        } else {
+          try {
+            const igRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=IGREJAS`);
+            if (igRes.ok) {
+              const igTxt = await igRes.text();
+              const igMatch = igTxt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+              if (igMatch && igMatch[1]) {
+                const igData = JSON.parse(igMatch[1]);
+                if (igData && igData.status === 'ok' && igData.table && igData.table.rows) {
+                  igData.table.rows.forEach((r, idx) => {
+                    if (idx > 0 && r.c && r.c[0] && r.c[0].v) {
+                      const name = String(r.c[0].v).trim();
+                      if (name) configuredChurches.push(name);
+                    }
+                  });
+                }
+              }
+            }
+          } catch (e) {
+            // Guia IGREJAS não obrigatória
+          }
+        }
+
+        if (configuredChurches.length === 0) {
+          configuredChurches = ["ICM ALVORADA", "ICM CERÂMICA"];
+        }
+
+        sheetData.churches = configuredChurches;
+        sheetData.occupied = {};
+
+        // 3. Carregar dados de horários apenas das igrejas informadas
+        for (const churchName of configuredChurches) {
+          try {
+            const churchUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(churchName)}`;
+            const res = await fetch(churchUrl);
+            if (res.ok) {
+              const txt = await res.text();
+              const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+              if (match && match[1]) {
+                const cData = JSON.parse(match[1]);
+                if (cData && cData.status === 'ok' && cData.table && cData.table.rows) {
+                  sheetData.occupied[churchName] = {};
+                  for (let i = 0; i < cData.table.rows.length; i++) {
+                    const r = cData.table.rows[i];
+                    if (r && r.c) {
+                      let timeVal = "";
+                      let memberVal = "";
+                      r.c.forEach((cell, colIdx) => {
+                        if (cell && cell.v !== null && cell.v !== undefined) {
+                          const valStr = String(cell.v).trim();
+                          if (/^\d{2}:\d{2}$/.test(valStr)) {
+                            timeVal = valStr;
+                          } else if (colIdx > 0 && timeVal && !memberVal) {
+                            memberVal = valStr;
+                          }
+                        }
+                      });
+                      if (!timeVal && r.c[0] && r.c[0].v) {
+                        const v0 = String(r.c[0].v).trim();
+                        if (/^\d{2}:\d{2}$/.test(v0)) timeVal = v0;
+                      }
+                      if (!memberVal && r.c[1] && r.c[1].v) {
+                        const v1 = String(r.c[1].v).trim();
+                        if (v1 && v1 !== timeVal) memberVal = v1;
+                      }
+
+                      if (timeVal && memberVal) {
+                        sheetData.occupied[churchName][timeVal] = memberVal;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            console.warn(`Aviso ao carregar igreja ${churchName}:`, err);
+          }
+        }
+
+        syncStatus.textContent = "Planilha sincronizada";
+        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium";
+      } catch (err) {
+        console.warn("Erro na sincronização:", err);
+        syncStatus.textContent = "Erro na sincronização";
+        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-medium";
+      }
+
+      initChurches();
+      initPeriods();
+    }
+
+    function initChurches() {
+      selectChurch.innerHTML = '<option value="">Selecione uma igreja existente na planilha...</option>';
+      sheetData.churches.forEach(church => {
+        const opt = document.createElement('option');
+        opt.value = church;
+        opt.textContent = church;
+        selectChurch.appendChild(opt);
+      });
+    }
+
+    function initPeriods() {
+      selectPeriod.innerHTML = '<option value="">Selecione o período de oração...</option>';
+      sheetData.periods.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = p.name;
+        selectPeriod.appendChild(opt);
+      });
+    }
+
+    // Ao selecionar a igreja, preenche os 96 horários
+    selectChurch.addEventListener('change', (e) => {
+      const church = e.target.value;
+      selectTime.innerHTML = '';
+      if (!church) {
+        selectTime.innerHTML = '<option value="">Selecione uma igreja primeiro...</option>';
+        selectTime.disabled = true;
+        return;
+      }
+      selectTime.disabled = false;
+      const occupiedMap = sheetData.occupied[church] || {};
+
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Selecione um horário vago...";
+      selectTime.appendChild(defaultOpt);
+
+      timeSlots.forEach(slot => {
+        const opt = document.createElement('option');
+        opt.value = slot;
+        if (occupiedMap[slot]) {
+          opt.textContent = `${slot} (Ocupado por: ${occupiedMap[slot]})`;
+          opt.disabled = true;
+          opt.classList.add('text-gray-400', 'bg-gray-100');
+        } else {
+          opt.textContent = `${slot} (Vago)`;
+        }
+        selectTime.appendChild(opt);
+      });
+    });
+
+    // Ao selecionar o período, carrega os motivos estritamente da planilha
+    selectPeriod.addEventListener('change', (e) => {
+      const idx = e.target.value;
+      if (idx === "") {
+        motivesContainer.classList.add('hidden');
+        return;
+      }
+      const period = sheetData.periods[idx];
+      
+      if (period.main && period.main.trim() !== "") {
+        motiveMain.textContent = period.main;
+        motiveMainBox.classList.remove('hidden');
+      } else {
+        motiveMainBox.classList.add('hidden');
+      }
+
+      motivesList.innerHTML = '';
+      let hasAnyMotive = false;
+      period.motives.forEach((m, i) => {
+        if (m && m.trim() !== "") {
+          hasAnyMotive = true;
+          const div = document.createElement('div');
+          div.className = 'bg-red-50/70 p-2.5 rounded border border-red-100 text-xs';
+          div.innerHTML = `<strong class="text-red-800">Motivo ${i+1}:</strong> ${m}`;
+          motivesList.appendChild(div);
+        }
+      });
+
+      if (!hasAnyMotive && (!period.main || period.main.trim() === "")) {
+        motivesContainer.classList.add('hidden');
+      } else {
+        motivesContainer.classList.remove('hidden');
+      }
+    });
+
+    // Submissão: Preencher o nome do membro no horário selecionado
+    document.getElementById('btnSubmit').addEventListener('click', () => {
+      const church = selectChurch.value;
+      const time = selectTime.value;
+      const member = document.getElementById('inputMember').value.trim();
+      const period = selectPeriod.value;
+
+      if (!church || !time || !member || period === "") {
+        showNotification('Por favor, selecione a igreja, o horário vago, informe o nome do membro e selecione o período de oração.', 'Atenção');
+        return;
+      }
+
+      if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
+      sheetData.occupied[church][time] = member;
+
+      showNotification(`Nome "${member}" registrado com sucesso para a igreja ${church} às ${time}!`, 'Sucesso');
+      
+      selectChurch.dispatchEvent(new Event('change'));
+      document.getElementById('inputMember').value = '';
+    });
+
+    // Modais e Fechamento
+    const modalTerms = document.getElementById('modalTerms');
+    document.getElementById('btnTerms').addEventListener('click', () => modalTerms.classList.remove('hidden'));
+    document.getElementById('closeTerms').addEventListener('click', () => modalTerms.classList.add('hidden'));
+    document.getElementById('acceptTerms').addEventListener('click', () => modalTerms.classList.add('hidden'));
+
+    const modalSettings = document.getElementById('modalSettings');
+    const inputSheetUrl = document.getElementById('inputSheetUrl');
+    const inputChurchesList = document.getElementById('inputChurchesList');
+
+    document.getElementById('btnSettings').addEventListener('click', () => {
+      inputSheetUrl.value = sheetUrl;
+      inputChurchesList.value = localStorage.getItem('oracao_churches') || sheetData.churches.join(', ');
+      modalSettings.classList.remove('hidden');
+    });
+    document.getElementById('closeSettings').addEventListener('click', () => modalSettings.classList.add('hidden'));
+    
+    document.getElementById('btnSaveSettings').addEventListener('click', () => {
+      sheetUrl = inputSheetUrl.value.trim() || DEFAULT_URL;
+      localStorage.setItem('oracao_sheet_url', sheetUrl);
+      
+      const churchesVal = inputChurchesList.value.trim();
+      if (churchesVal) {
+        localStorage.setItem('oracao_churches', churchesVal);
+      }
+
+      modalSettings.classList.add('hidden');
+      loadSpreadsheetData();
+      showNotification('Configurações salvas e planilha sincronizada com sucesso!', 'Configuração');
+    });
+
+    document.getElementById('btnResetDefault').addEventListener('click', () => {
+      sheetUrl = DEFAULT_URL;
+      inputSheetUrl.value = DEFAULT_URL;
+      localStorage.setItem('oracao_sheet_url', DEFAULT_URL);
+      localStorage.removeItem('oracao_churches');
+      inputChurchesList.value = "ICM ALVORADA, ICM CERÂMICA";
+      loadSpreadsheetData();
+      showNotification('Planilha e igrejas restauradas para o padrão.', 'Configuração');
+    });
+
+    document.getElementById('btnExportTemplate').addEventListener('click', () => {
+      const csvContent = "data:text/csv;charset=utf-8,GUIA_IGREJA,HORARIO,MEMBRO,PERIODO_DE_ORACAO,MOTIVO_PRINCIPAL,MOTIVO_1\nICM ALVORADA,00:00,,Período 1: Madrugada,Clamor pela santificação,Pelos pastores";
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "modelo_oracao_ininterrupta.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Fechar imediatamente a janela do navegador
+    document.getElementById('btnClose').addEventListener('click', () => {
+      window.close();
+      document.body.innerHTML = '<div class="flex items-center justify-center h-screen bg-red-950 text-white"><div class="text-center"><h1 class="text-2xl font-bold mb-2">Janela Fechada</h1><p class="text-sm text-red-200">Você pode fechar esta aba do navegador com segurança.</p></div></div>';
+    });
+
+    // Inicialização ao carregar a página
+    loadSpreadsheetData();
+  </script>
+</body>
+</html>
