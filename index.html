@@ -1,548 +1,1687 @@
-
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!DOCTYPE html><html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oração Ininterrupta</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
+  <title>Oração Ininterrupta</title>  <script src="https://cdn.tailwindcss.com"></script>  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  <style>
     body {
       background-color: #fff5f5;
       color: #7f1d1d;
       font-family: 'Inter', sans-serif;
     }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col justify-between bg-red-50/20">
-  <!-- Header -->
-  <header class="bg-red-800 text-white shadow-md p-4 flex justify-between items-center">
-    <div class="flex items-center space-x-2">
-      <i class="fa-solid fa-hands-praying text-2xl text-red-200"></i>
-      <h1 class="text-xl font-bold tracking-wide">Oração Ininterrupta</h1>
-    </div>
-    <div class="flex items-center space-x-3">
-      <button id="btnTerms" title="Termos de Uso" class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
-        <i class="fa-solid fa-file-contract"></i>
-        <span class="hidden sm:inline">Termos</span>
-      </button>
-      <button id="btnSettings" title="Configurar Planilha e Gravação" class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
-        <i class="fa-solid fa-gear"></i>
-        <span class="hidden sm:inline">Configurar</span>
-      </button>
-      <button id="btnClose" title="Fechar Janela" class="bg-red-950 hover:bg-black px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
-        <i class="fa-solid fa-xmark"></i>
-        <span class="hidden sm:inline">Fechar</span>
-      </button>
-    </div>
-  </header>
+  </style></head><body class="min-h-screen flex flex-col justify-between bg-red-50/20">  <!-- Header -->  <header class="bg-red-800 text-white shadow-md p-4 flex justify-between items-center"><div class="flex items-center space-x-2">
+  <i class="fa-solid fa-hands-praying text-2xl text-red-200"></i>
+  <h1 class="text-xl font-bold tracking-wide">
+    Oração Ininterrupta
+  </h1>
+</div>
 
-  <!-- Main Content -->
-  <main class="container mx-auto p-4 max-w-3xl flex-grow">
-    <!-- Status Card -->
-    <div class="bg-white border border-red-200 rounded-xl shadow-sm p-5 mb-6">
-      <div class="flex justify-between items-center mb-2">
-        <h2 class="text-lg font-semibold text-red-800">
-          Programação de horários
-        </h2>
-        <span id="syncStatus" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">Carregando...</span>
-      </div>
-      <p class="text-sm text-red-600 mb-4">Selecione a igreja, escolha um horário vago e informe o nome do membro para registrar.</p>
-      
-      <!-- Church Selector -->
-      <div class="mb-4">
-        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Igreja (Guia da Planilha)</label>
-        <select id="selectChurch" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <option value="">Carregando igrejas...</option>
-        </select>
-      </div>
+<div class="flex items-center space-x-3">
 
-      <!-- Time Slot Selector -->
-      <div class="mb-4">
-        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Horário (24h - Intervalos de 15 min)</label>
-        <select id="selectTime" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500" disabled>
-          <option value="">Selecione uma igreja primeiro...</option>
-        </select>
-      </div>
+  <button id="btnTerms"
+    title="Termos de Uso"
+    class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+    <i class="fa-solid fa-file-contract"></i>
+    <span class="hidden sm:inline">Termos</span>
+  </button>
 
-      <!-- Member Name Input -->
-      <div class="mb-4">
-        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Nome do Membro (Preenchimento)</label>
-        <input type="text" id="inputMember" placeholder="Digite seu nome completo para registrar no horário" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-      </div>
+  <button id="btnSettings"
+    title="Configurar Planilha e Gravação"
+    class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+    <i class="fa-solid fa-gear"></i>
+    <span class="hidden sm:inline">Configurar</span>
+  </button>
 
-      <!-- Save Button -->
-      <button id="btnSubmit" class="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-lg shadow transition flex items-center justify-center space-x-2 mb-4">
-        <i class="fa-solid fa-check"></i>
-        <span>Salvar nome do membro na planilha</span>
-      </button>
+  <button id="btnClose"
+    title="Fechar Janela"
+    class="bg-red-950 hover:bg-black px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+    <i class="fa-solid fa-xmark"></i>
+    <span class="hidden sm:inline">Fechar</span>
+  </button>
 
-      <!-- Prayer Period Selector (Below save button and optional) -->
-      <div class="mb-2">
-        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Período de Oração (Guia PERÍODOS - Coluna A) <span class="text-gray-400 font-normal">(Opcional)</span></label>
-        <select id="selectPeriod" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <option value="">Selecione o período de oração...</option>
-        </select>
-      </div>
-    </div>
+</div>
 
-    <!-- Motives Container -->
-    <div id="motivesContainer" class="bg-white border border-red-200 rounded-xl shadow-sm p-5 hidden">
-      <h3 class="text-md font-bold text-red-800 mb-3 border-b border-red-100 pb-2 flex items-center">
-        <i class="fa-solid fa-book-open mr-2 text-red-600"></i> Motivos de Oração da Planilha
-      </h3>
-      <div class="space-y-3 text-sm text-red-900">
-        <div id="motiveMainBox" class="bg-red-50 p-3 rounded-lg border border-red-100 hidden">
-          <strong class="block text-red-800 mb-1"><i class="fa-solid fa-star mr-1"></i> Motivo Principal:</strong>
-          <p id="motiveMain" class="text-gray-700"></p>
-        </div>
-        <div id="motivesList" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <!-- Motivos carregados estritamente da planilha -->
-        </div>
-      </div>
-    </div>
-  </main>
+  </header>  <!-- Main Content -->  <main class="container mx-auto p-4 max-w-3xl flex-grow"><!-- Status Card -->
+<div class="bg-white border border-red-200 rounded-xl shadow-sm p-5 mb-6">
 
-  <!-- Notification Modal -->
-  <div id="modalNotification" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-red-100 text-center">
-      <div id="notifIcon" class="text-3xl text-red-600 mb-3"><i class="fa-solid fa-circle-check"></i></div>
-      <h3 id="notifTitle" class="text-lg font-bold text-red-900 mb-2">Aviso</h3>
-      <p id="notifMessage" class="text-sm text-gray-700 mb-6">Mensagem informativa.</p>
-      <button id="closeNotif" class="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded-lg text-sm font-semibold transition">OK</button>
-    </div>
+  <div class="flex justify-between items-center mb-2">
+
+    <h2 class="text-lg font-semibold text-red-800">
+      Programação de horários
+    </h2>
+
+    <span id="syncStatus"
+      class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">
+      Carregando...
+    </span>
+
   </div>
 
-  <!-- Terms Modal -->
-  <div id="modalTerms" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-red-100">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-red-800 flex items-center">
-          <i class="fa-solid fa-file-contract mr-2"></i> Termos de Uso e Responsabilidade
-        </h3>
-        <button id="closeTerms" class="text-gray-400 hover:text-gray-600">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-      <div class="text-sm text-gray-700 space-y-3 max-h-96 overflow-y-auto pr-2">
-        <p>1. O aplicativo <strong>Oração Ininterrupta</strong> lê e preenche as guias de igrejas iniciadas com "ICM".</p>
-        <p>2. Ao preencher um horário, o membro compromete-se a dedicar o intervalo selecionado à oração conforme os motivos da planilha.</p>
-      </div>
-      <div class="mt-6 text-right">
-        <button id="acceptTerms" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Entendido</button>
-      </div>
-    </div>
+  <p class="text-sm text-red-600 mb-4">
+    Selecione a igreja, escolha um horário vago e informe o nome do membro para registrar.
+  </p>
+
+
+  <!-- Church Selector -->
+  <div class="mb-4">
+
+    <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">
+      Igreja (Guia da Planilha)
+    </label>
+
+    <select id="selectChurch"
+      class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+
+      <option value="">
+        Carregando igrejas...
+      </option>
+
+    </select>
+
   </div>
 
-  <!-- Settings Modal -->
-  <div id="modalSettings" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-red-100 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-red-800 flex items-center">
-          <i class="fa-solid fa-gear mr-2"></i> Configuração do Script e Planilha
-        </h3>
-        <button id="closeSettings" class="text-gray-400 hover:text-gray-600">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-      <div class="space-y-4 text-sm text-gray-700">
-        <div>
-          <label class="block font-semibold text-red-800 mb-1">URL do Web App do Google Apps Script (Opcional p/ Sincronização)</label>
-          <input type="text" id="inputScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <p class="text-[11px] text-gray-500 mt-1">Insira a URL do Web App implantado para gravação remota na planilha.</p>
-        </div>
-        <div>
-          <label class="block font-semibold text-red-800 mb-1">URL da Planilha do Google Drive</label>
-          <input type="text" id="inputSheetUrl" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-        </div>
-        <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
-          <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Código para o Google Apps Script:</strong>
-          <p class="mb-1">Cole no Apps Script (Extensões > Apps Script) e clique em <strong>Implantar > Nova implantação</strong> (Acesso: <strong>Qualquer pessoa</strong>).</p>
-          <textarea readonly class="w-full h-32 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doGet(e) {
-  var callback = e.parameter.callback;
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = ss.getSheets();
-  var data = { churches: [], occupied: {}, periods: [] };
-  var pSheet = ss.getSheetByName("PERÍODOS");
-  if (pSheet) {
-    var rows = pSheet.getDataRange().getValues();
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][0]) {
-        var motives = [];
-        for (var j = 1; j < rows[i].length; j++) motives.push(String(rows[i][j] || ""));
-        data.periods.push({ name: String(rows[i][0]), main: String(rows[i][1] || ""), motives: motives });
+
+  <!-- Time Slot Selector -->
+  <div class="mb-4">
+
+    <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">
+      Horário (24h - Intervalos de 15 min)
+    </label>
+
+    <select id="selectTime"
+      class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+      disabled>
+
+      <option value="">
+        Selecione uma igreja primeiro...
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <!-- Member Name -->
+  <div class="mb-4">
+
+    <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">
+      Nome do Membro (Preenchimento)
+    </label>
+
+    <input
+      type="text"
+      id="inputMember"
+      placeholder="Digite seu nome completo para registrar no horário"
+      class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+
+  </div>
+
+
+  <!-- Save Button -->
+  <button
+    id="btnSubmit"
+    class="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-lg shadow transition flex items-center justify-center space-x-2 mb-4">
+
+    <i class="fa-solid fa-check"></i>
+
+    <span>
+      Salvar nome do membro na planilha
+    </span>
+
+  </button>
+
+
+  <!-- Prayer Period -->
+  <div class="mb-2">
+
+    <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">
+
+      Período de Oração
+      (Guia PERÍODOS - Coluna A)
+
+      <span class="text-gray-400 font-normal">
+        (Opcional)
+      </span>
+
+    </label>
+
+    <select
+      id="selectPeriod"
+      class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+
+      <option value="">
+        Selecione o período de oração...
+      </option>
+
+    </select>
+
+  </div>
+
+</div>
+
+
+<!-- Motives -->
+<div
+  id="motivesContainer"
+  class="bg-white border border-red-200 rounded-xl shadow-sm p-5 hidden">
+
+  <h3
+    class="text-md font-bold text-red-800 mb-3 border-b border-red-100 pb-2 flex items-center">
+
+    <i class="fa-solid fa-book-open mr-2 text-red-600"></i>
+
+    Motivos de Oração da Planilha
+
+  </h3>
+
+  <div class="space-y-3 text-sm text-red-900">
+
+    <div
+      id="motiveMainBox"
+      class="bg-red-50 p-3 rounded-lg border border-red-100 hidden">
+
+      <strong class="block text-red-800 mb-1">
+
+        <i class="fa-solid fa-star mr-1"></i>
+        Motivo Principal:
+
+      </strong>
+
+      <p id="motiveMain" class="text-gray-700"></p>
+
+    </div>
+
+    <div
+      id="motivesList"
+      class="grid grid-cols-1 md:grid-cols-2 gap-2">
+    </div>
+
+  </div>
+
+</div>
+
+  </main>  <!-- Notification Modal -->  <div
+    id="modalNotification"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div
+  class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-red-100 text-center">
+
+  <div
+    id="notifIcon"
+    class="text-3xl text-red-600 mb-3">
+
+    <i class="fa-solid fa-circle-check"></i>
+
+  </div>
+
+  <h3
+    id="notifTitle"
+    class="text-lg font-bold text-red-900 mb-2">
+    Aviso
+  </h3>
+
+  <p
+    id="notifMessage"
+    class="text-sm text-gray-700 mb-6">
+    Mensagem informativa.
+  </p>
+
+  <button
+    id="closeNotif"
+    class="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded-lg text-sm font-semibold transition">
+
+    OK
+
+  </button>
+
+</div>
+
+  </div>  <!-- Terms Modal -->  <div
+    id="modalTerms"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div
+  class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-red-100">
+
+  <div class="flex justify-between items-center mb-4">
+
+    <h3
+      class="text-lg font-bold text-red-800 flex items-center">
+
+      <i class="fa-solid fa-file-contract mr-2"></i>
+
+      Termos de Uso e Responsabilidade
+
+    </h3>
+
+    <button
+      id="closeTerms"
+      class="text-gray-400 hover:text-gray-600">
+
+      <i class="fa-solid fa-xmark text-xl"></i>
+
+    </button>
+
+  </div>
+
+  <div
+    class="text-sm text-gray-700 space-y-3 max-h-96 overflow-y-auto pr-2">
+
+    <p>
+      1. O aplicativo <strong>Oração Ininterrupta</strong>
+      lê e preenche as guias de igrejas iniciadas com "ICM".
+    </p>
+
+    <p>
+      2. Ao preencher um horário, o membro compromete-se a dedicar
+      o intervalo selecionado à oração conforme os motivos da planilha.
+    </p>
+
+  </div>
+
+  <div class="mt-6 text-right">
+
+    <button
+      id="acceptTerms"
+      class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+
+      Entendido
+
+    </button>
+
+  </div>
+
+</div>
+
+  </div>  <!-- Settings Modal -->  <div
+    id="modalSettings"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50"><div
+  class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-red-100 max-h-[90vh] overflow-y-auto">
+
+  <div class="flex justify-between items-center mb-4">
+
+    <h3
+      class="text-lg font-bold text-red-800 flex items-center">
+
+      <i class="fa-solid fa-gear mr-2"></i>
+
+      Configuração do Script e Planilha
+
+    </h3>
+
+    <button
+      id="closeSettings"
+      class="text-gray-400 hover:text-gray-600">
+
+      <i class="fa-solid fa-xmark text-xl"></i>
+
+    </button>
+
+  </div>
+
+
+  <div class="space-y-4 text-sm text-gray-700">
+
+    <div>
+
+      <label class="block font-semibold text-red-800 mb-1">
+        URL do Web App do Google Apps Script
+      </label>
+
+      <input
+        type="text"
+        id="inputScriptUrl"
+        placeholder="https://script.google.com/macros/s/.../exec"
+        class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+
+      <p class="text-[11px] text-gray-500 mt-1">
+        URL usada para leitura e gravação na planilha.
+      </p>
+
+    </div>
+
+
+    <div>
+
+      <label class="block font-semibold text-red-800 mb-1">
+        URL da Planilha do Google Drive
+      </label>
+
+      <input
+        type="text"
+        id="inputSheetUrl"
+        class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+
+    </div>
+
+
+    <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
+
+      <strong class="block font-bold mb-1">
+        <i class="fa-solid fa-info-circle"></i>
+        Código para o Google Apps Script:
+      </strong>
+
+      <p class="mb-1">
+        Cole o código abaixo no Apps Script e faça uma nova implantação.
+        Em "Quem pode acessar", selecione
+        <strong>Qualquer pessoa</strong>.
+      </p>
+
+      <p class="mb-1">
+        <strong>Importante:</strong> o código do Apps Script deve ser
+        atualizado conforme indicado após este código HTML.
+      </p>
+
+    </div>
+
+
+    <div class="flex space-x-2 pt-2">
+
+      <button
+        id="btnResetDefault"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">
+
+        Restaurar Padrão
+
+      </button>
+
+      <button
+        id="btnSaveSettings"
+        class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">
+
+        Salvar Configurações
+
+      </button>
+
+    </div>
+
+
+    <hr class="border-red-100 my-2">
+
+
+    <div>
+
+      <h4 class="font-semibold text-red-800 mb-1">
+        Exportar Modelo Padrão
+      </h4>
+
+      <button
+        id="btnExportTemplate"
+        class="w-full bg-red-100 hover:bg-red-200 text-red-800 font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center space-x-2 border border-red-200">
+
+        <i class="fa-solid fa-download"></i>
+
+        <span>
+          Exportar Modelo Padrão (CSV)
+        </span>
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+  </div>  <footer
+    class="bg-red-50 text-red-800 text-center py-3 text-xs border-t border-red-100">Oração Ininterrupta &copy; 2026 -
+Leitura e preenchimento integrado à planilha.
+
+  </footer><script>
+
+  /*
+   * ============================================================
+   * CONFIGURAÇÃO
+   * ============================================================
+   */
+
+  const DEFAULT_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbwIbpSfzGmZdf84GLmomAIOOl5StAJIcP1ECVJrX3KFzn4FCyCdak04W-xrKOVaEcKWTg/exec";
+
+  const DEFAULT_SHEET_URL =
+    "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
+
+
+  let scriptUrl =
+    localStorage.getItem('oracao_script_url') ||
+    DEFAULT_SCRIPT_URL;
+
+  let sheetUrl =
+    localStorage.getItem('oracao_sheet_url') ||
+    DEFAULT_SHEET_URL;
+
+
+  /*
+   * ============================================================
+   * HORÁRIOS
+   * ============================================================
+   */
+
+  function generateTimeSlots() {
+
+    const slots = [];
+
+    for (let h = 0; h < 24; h++) {
+
+      for (let m = 0; m < 60; m += 15) {
+
+        slots.push(
+          `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+        );
+
       }
+
     }
+
+    return slots;
   }
-  sheets.forEach(function(s) {
-    var name = s.getName();
-    if (name !== "PERÍODOS" && name !== "Modelo igreja" && name.indexOf("ICM") === 0) {
-      data.churches.push(name);
-      data.occupied[name] = {};
-      var r = s.getDataRange().getValues();
-      r.forEach(function(row) {
-        var t = "", m = "";
-        row.forEach(function(cell, idx) {
-          var val = String(cell || "").trim();
-          if (/^\d{2}:\d{2}$/.test(val)) t = val;
-          else if (idx > 0 && t && !m && val) m = val;
-        });
-        if (t && m) data.occupied[name][t] = m;
-      });
-    }
-  });
-  var jsonString = JSON.stringify(data);
-  if (callback) {
-    return ContentService.createTextOutput(callback + "(" + jsonString + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService.createTextOutput(jsonString).setMimeType(ContentService.MimeType.JSON);
-}
-function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.tryLock(15000);
+
+  const timeSlots = generateTimeSlots();
+
+
+  /*
+   * ============================================================
+   * DADOS LOCAIS
+   * ============================================================
+   */
+
+  let savedOccupied = {};
+
   try {
-    var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(data.church);
-    if (!sheet) { sheet = ss.insertSheet(data.church); sheet.appendRow(["Horário", "Membro"]); }
-    var rows = sheet.getDataRange().getValues();
-    var rowIdx = -1;
-    for (var i = 0; i < rows.length; i++) {
-      if (String(rows[i][0]).trim() === String(data.time).trim()) { rowIdx = i + 1; break; }
-    }
-    if (rowIdx > -1) sheet.getRange(rowIdx, 2).setValue(data.member);
-    else sheet.appendRow([data.time, data.member]);
-    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
-  } finally { lock.releaseLock(); }
-}</textarea>
-        </div>
-        <div class="flex space-x-2 pt-2">
-          <button id="btnResetDefault" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Restaurar Padrão</button>
-          <button id="btnSaveSettings" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Salvar Configurações</button>
-        </div>
-        <hr class="border-red-100 my-2">
-        <div>
-          <h4 class="font-semibold text-red-800 mb-1">Exportar Modelo Padrão</h4>
-          <button id="btnExportTemplate" class="w-full bg-red-100 hover:bg-red-200 text-red-800 font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center space-x-2 border border-red-200">
-            <i class="fa-solid fa-download"></i>
-            <span>Exportar Modelo Padrão (CSV)</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </main>
 
-  <footer class="bg-red-50 text-red-800 text-center py-3 text-xs border-t border-red-100">
-    Oração Ininterrupta &copy; 2026 - Leitura e preenchimento integrado à planilha.
-  </footer>
+    savedOccupied =
+      JSON.parse(
+        localStorage.getItem('oracao_occupied_local') || '{}'
+      );
 
-  <script>
-    const DEFAULT_SCRIPT_URL = ""; // Deixado vazio por padrão para priorizar modo local estável e permitir configurar se desejar
-    const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
-    let scriptUrl = localStorage.getItem('oracao_script_url') || DEFAULT_SCRIPT_URL;
-    let sheetUrl = localStorage.getItem('oracao_sheet_url') || DEFAULT_SHEET_URL;
+  } catch (e) {
 
-    function generateTimeSlots() {
-      const slots = [];
-      for (let h = 0; h < 24; h++) {
-        for (let m = 0; m < 60; m += 15) {
-          slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-        }
+    savedOccupied = {};
+
+  }
+
+
+  let sheetData = {
+
+    churches: [
+      "ICM ALVORADA",
+      "ICM CERÂMICA",
+      "ICM CENTRO",
+      "ICM VILA NOVA"
+    ],
+
+    occupied: savedOccupied,
+
+    periods: [
+
+      {
+        name: "Período 1: Madrugada (00h - 06h)",
+        main: "Clamor pela santificação e proteção das famílias",
+        motives: [
+          "Pelos pastores e obreiros",
+          "Pelas famílias e lares",
+          "Pela obra do Senhor em toda a terra",
+          "Pelos enfermos e necessitados"
+        ]
+      },
+
+      {
+        name: "Período 2: Manhã (06h - 12h)",
+        main: "Renovação espiritual e direção diária",
+        motives: [
+          "Pela juventude e crianças",
+          "Pelos cultos e reuniões",
+          "Direção na pregação do Evangelho",
+          "Unidade da igreja"
+        ]
+      },
+
+      {
+        name: "Período 3: Tarde (12h - 18h)",
+        main: "Proteção e provisão divina",
+        motives: [
+          "Pelos trabalhos profissionais e estudos",
+          "Livramento de males e perigos",
+          "Missões e evangelização",
+          "Famílias enlutadas ou provadas"
+        ]
+      },
+
+      {
+        name: "Período 4: Noite (18h - 00h)",
+        main: "Gratidão e clamor pelos cultos da noite",
+        motives: [
+          "Pela operação de sinais e maravilhas",
+          "Batismo com o Espírito Santo",
+          "Derramamento de dons espirituais",
+          "Louvor e adoração a Deus"
+        ]
       }
-      return slots;
-    }
 
-    const timeSlots = generateTimeSlots();
+    ]
 
-    // Carregar agendamentos salvos localmente no navegador (se houver)
-    let savedOccupied = {};
-    try {
-      savedOccupied = JSON.parse(localStorage.getItem('oracao_occupied_local') || '{}');
-    } catch(e) { savedOccupied = {}; }
+  };
 
-    // Dados padrão seguros e completos para funcionamento imediato
-    let sheetData = {
-      churches: ["ICM ALVORADA", "ICM CERÂMICA", "ICM CENTRO", "ICM VILA NOVA"],
-      occupied: savedOccupied,
-      periods: [
-        { name: "Período 1: Madrugada (00h - 06h)", main: "Clamor pela santificação e proteção das famílias", motives: ["Pelos pastores e obreiros", "Pelas famílias e lares", "Pela obra do Senhor em toda a terra", "Pelos enfermos e necessitados"] },
-        { name: "Período 2: Manhã (06h - 12h)", main: "Renovação espiritual e direção diária", motives: ["Pela juventude e crianças", "Pelos cultos e reuniões", "Direção na pregação do Evangelho", "Unidade da igreja"] },
-        { name: "Período 3: Tarde (12h - 18h)", main: "Proteção e provisão divina", motives: ["Pelos trabalhos profissionais e estudos", "Livramento de males e perigos", "Missões e evangelização", "Famílias enlutadas ou provadas"] },
-        { name: "Período 4: Noite (18h - 00h)", main: "Gratidão e clamor pelos cultos da noite", motives: ["Pela operação de sinais e maravilhas", "Batismo com o Espírito Santo", "Derramamento de dons espirituais", "Louvor e adoração a Deus"] }
-      ]
-    };
 
-    const selectChurch = document.getElementById('selectChurch');
-    const selectTime = document.getElementById('selectTime');
-    const selectPeriod = document.getElementById('selectPeriod');
-    const motivesContainer = document.getElementById('motivesContainer');
-    const motiveMainBox = document.getElementById('motiveMainBox');
-    const motiveMain = document.getElementById('motiveMain');
-    const motivesList = document.getElementById('motivesList');
-    const syncStatus = document.getElementById('syncStatus');
+  /*
+   * ============================================================
+   * ELEMENTOS
+   * ============================================================
+   */
 
-    function showNotification(message, title = "Aviso") {
-      document.getElementById('notifTitle').textContent = title;
-      document.getElementById('notifMessage').textContent = message;
-      document.getElementById('modalNotification').classList.remove('hidden');
-    }
-    document.getElementById('closeNotif').addEventListener('click', () => {
-      document.getElementById('modalNotification').classList.add('hidden');
+  const selectChurch =
+    document.getElementById('selectChurch');
+
+  const selectTime =
+    document.getElementById('selectTime');
+
+  const selectPeriod =
+    document.getElementById('selectPeriod');
+
+  const motivesContainer =
+    document.getElementById('motivesContainer');
+
+  const motiveMainBox =
+    document.getElementById('motiveMainBox');
+
+  const motiveMain =
+    document.getElementById('motiveMain');
+
+  const motivesList =
+    document.getElementById('motivesList');
+
+  const syncStatus =
+    document.getElementById('syncStatus');
+
+
+  /*
+   * ============================================================
+   * NOTIFICAÇÃO
+   * ============================================================
+   */
+
+  function showNotification(message, title = "Aviso") {
+
+    document.getElementById('notifTitle').textContent = title;
+
+    document.getElementById('notifMessage').textContent = message;
+
+    document.getElementById('modalNotification')
+      .classList.remove('hidden');
+
+  }
+
+
+  document
+    .getElementById('closeNotif')
+    .addEventListener('click', () => {
+
+      document.getElementById('modalNotification')
+        .classList.add('hidden');
+
     });
 
-    // Função de carregamento com Modo Local Robusto
-    function loadSpreadsheetData() {
-      if (!scriptUrl) {
-        syncStatus.textContent = "Modo Local Ativo (Salvando no Aparelho)";
-        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
-        initChurches();
-        initPeriods();
-        return;
-      }
 
-      syncStatus.textContent = "Sincronizando...";
-      syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
+  /*
+   * ============================================================
+   * STATUS
+   * ============================================================
+   */
 
-      let isCompleted = false;
-      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-      const scriptElem = document.createElement('script');
+  function setSyncStatus(text, type) {
 
-      const timeout = setTimeout(() => {
-        if (!isCompleted) {
-          isCompleted = true;
-          if (scriptElem.parentNode) document.body.removeChild(scriptElem);
-          delete window[callbackName];
-          syncStatus.textContent = "Modo Local (Sem Conexão Apps Script)";
-          syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
-          initChurches();
-          initPeriods();
-        }
-      }, 3000);
-      
-      window[callbackName] = function(data) {
-        if (isCompleted) return;
-        isCompleted = true;
-        clearTimeout(timeout);
-        delete window[callbackName];
-        if (scriptElem.parentNode) document.body.removeChild(scriptElem);
-        
-        if (data && data.churches && data.churches.length > 0) {
-          sheetData.churches = data.churches;
-          // Mesclar dados remotos com salvos localmente se houver
-          sheetData.occupied = Object.assign({}, data.occupied || {}, savedOccupied);
-          sheetData.periods = data.periods || sheetData.periods;
-          syncStatus.textContent = "Sincronizado com Planilha";
-          syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium";
-        } else {
-          syncStatus.textContent = "Modo Local Ativo";
-          syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
-        }
-        initChurches();
-        initPeriods();
-      };
+    syncStatus.textContent = text;
 
-      scriptElem.onerror = function() {
-        if (isCompleted) return;
-        isCompleted = true;
-        clearTimeout(timeout);
-        delete window[callbackName];
-        if (scriptElem.parentNode) document.body.removeChild(scriptElem);
-        syncStatus.textContent = "Modo Local (Sem Conexão Apps Script)";
-        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
-        initChurches();
-        initPeriods();
-      };
+    if (type === "success") {
 
-      scriptElem.src = `${scriptUrl}?callback=${callbackName}`;
-      document.body.appendChild(scriptElem);
+      syncStatus.className =
+        "text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium";
+
+    } else if (type === "error") {
+
+      syncStatus.className =
+        "text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-medium";
+
+    } else {
+
+      syncStatus.className =
+        "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
+
     }
 
-    function initChurches() {
-      selectChurch.innerHTML = '<option value="">Selecione uma igreja...</option>';
-      sheetData.churches.forEach(church => {
-        const opt = document.createElement('option');
-        opt.value = church;
-        opt.textContent = church;
-        selectChurch.appendChild(opt);
-      });
+  }
+
+
+  /*
+   * ============================================================
+   * CARREGAMENTO DA PLANILHA
+   * ============================================================
+   */
+
+  function loadSpreadsheetData() {
+
+    if (!scriptUrl) {
+
+      setSyncStatus(
+        "Modo Local Ativo",
+        "local"
+      );
+
+      initChurches();
+      initPeriods();
+
+      return;
+
     }
 
-    function initPeriods() {
-      selectPeriod.innerHTML = '<option value="">Selecione o período de oração...</option>';
-      sheetData.periods.forEach((p, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = p.name;
-        selectPeriod.appendChild(opt);
-      });
-    }
 
-    selectChurch.addEventListener('change', (e) => {
-      const church = e.target.value;
-      selectTime.innerHTML = '';
-      if (!church) {
-        selectTime.innerHTML = '<option value="">Selecione uma igreja primeiro...</option>';
-        selectTime.disabled = true;
-        return;
+    setSyncStatus(
+      "Sincronizando...",
+      "local"
+    );
+
+
+    let completed = false;
+
+    const callbackName =
+      'jsonp_load_' +
+      Date.now() +
+      '_' +
+      Math.floor(Math.random() * 100000);
+
+
+    const scriptElem =
+      document.createElement('script');
+
+
+    const finish = () => {
+
+      if (scriptElem.parentNode) {
+        scriptElem.parentNode.removeChild(scriptElem);
       }
-      selectTime.disabled = false;
-      const occupiedMap = sheetData.occupied[church] || {};
-
-      const defaultOpt = document.createElement('option');
-      defaultOpt.value = "";
-      defaultOpt.textContent = "Selecione um horário vago...";
-      selectTime.appendChild(defaultOpt);
-
-      timeSlots.forEach(slot => {
-        const opt = document.createElement('option');
-        opt.value = slot;
-        if (occupiedMap[slot]) {
-          opt.textContent = `${slot} (Ocupado por: ${occupiedMap[slot]})`;
-          opt.disabled = true;
-          opt.classList.add('text-gray-400', 'bg-gray-100');
-        } else {
-          opt.textContent = `${slot} (Vago)`;
-        }
-        selectTime.appendChild(opt);
-      });
-    });
-
-    selectPeriod.addEventListener('change', (e) => {
-      const idx = e.target.value;
-      if (idx === "") {
-        motivesContainer.classList.add('hidden');
-        return;
-      }
-      const period = sheetData.periods[idx];
-      
-      if (period.main && period.main.trim() !== "") {
-        motiveMain.textContent = period.main;
-        motiveMainBox.classList.remove('hidden');
-      } else {
-        motiveMainBox.classList.add('hidden');
-      }
-
-      motivesList.innerHTML = '';
-      let hasAnyMotive = false;
-      period.motives.forEach((m, i) => {
-        if (m && m.trim() !== "") {
-          hasAnyMotive = true;
-          const div = document.createElement('div');
-          div.className = 'bg-red-50/70 p-2.5 rounded border border-red-100 text-xs';
-          div.innerHTML = `<strong class="text-red-800">Motivo ${i+1}:</strong> ${m}`;
-          motivesList.appendChild(div);
-        }
-      });
-
-      if (!hasAnyMotive && (!period.main || period.main.trim() === "")) {
-        motivesContainer.classList.add('hidden');
-      } else {
-        motivesContainer.classList.remove('hidden');
-      }
-    });
-
-    document.getElementById('btnSubmit').addEventListener('click', async () => {
-      const church = selectChurch.value;
-      const time = selectTime.value;
-      const member = document.getElementById('inputMember').value.trim();
-
-      if (!church || !time || !member) {
-        showNotification('Por favor, selecione a igreja, o horário vago e informe o nome do membro.', 'Atenção');
-        return;
-      }
-
-      const btn = document.getElementById('btnSubmit');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando horário...';
 
       try {
-        if (scriptUrl) {
-          // Tenta enviar para o Apps Script em background (sem bloquear se falhar)
-          fetch(scriptUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ church, time, member })
-          }).catch(err => console.log("Envio remoto ignorado, salvando localmente."));
+        delete window[callbackName];
+      } catch (e) {}
+
+    };
+
+
+    const timeout =
+      setTimeout(() => {
+
+        if (completed) return;
+
+        completed = true;
+
+        finish();
+
+        setSyncStatus(
+          "Modo Local — Apps Script indisponível",
+          "error"
+        );
+
+        initChurches();
+        initPeriods();
+
+      }, 10000);
+
+
+    window[callbackName] = function(data) {
+
+      if (completed) return;
+
+      completed = true;
+
+      clearTimeout(timeout);
+
+      finish();
+
+
+      if (
+        data &&
+        data.status === "success" &&
+        Array.isArray(data.churches)
+      ) {
+
+        sheetData.churches =
+          data.churches;
+
+        sheetData.occupied =
+          data.occupied || {};
+
+        sheetData.periods =
+          data.periods && data.periods.length
+            ? data.periods
+            : sheetData.periods;
+
+
+        /*
+         * Os dados locais não substituem os dados
+         * remotos. A planilha é a fonte principal.
+         */
+
+        setSyncStatus(
+          "Sincronizado com Planilha",
+          "success"
+        );
+
+      } else {
+
+        setSyncStatus(
+          "Modo Local — resposta inválida",
+          "error"
+        );
+
+      }
+
+
+      initChurches();
+      initPeriods();
+
+    };
+
+
+    scriptElem.onerror = function() {
+
+      if (completed) return;
+
+      completed = true;
+
+      clearTimeout(timeout);
+
+      finish();
+
+      setSyncStatus(
+        "Modo Local — erro de conexão",
+        "error"
+      );
+
+      initChurches();
+      initPeriods();
+
+    };
+
+
+    scriptElem.src =
+      scriptUrl +
+      "?action=load" +
+      "&callback=" +
+      encodeURIComponent(callbackName);
+
+
+    document.body.appendChild(scriptElem);
+
+  }
+
+
+  /*
+   * ============================================================
+   * IGREJAS
+   * ============================================================
+   */
+
+  function initChurches() {
+
+    selectChurch.innerHTML =
+      '<option value="">Selecione uma igreja...</option>';
+
+
+    sheetData.churches.forEach(church => {
+
+      const opt =
+        document.createElement('option');
+
+      opt.value = church;
+
+      opt.textContent = church;
+
+      selectChurch.appendChild(opt);
+
+    });
+
+  }
+
+
+  /*
+   * ============================================================
+   * PERÍODOS
+   * ============================================================
+   */
+
+  function initPeriods() {
+
+    selectPeriod.innerHTML =
+      '<option value="">Selecione o período de oração...</option>';
+
+
+    sheetData.periods.forEach((p, idx) => {
+
+      const opt =
+        document.createElement('option');
+
+      opt.value = idx;
+
+      opt.textContent = p.name;
+
+      selectPeriod.appendChild(opt);
+
+    });
+
+  }
+
+
+  /*
+   * ============================================================
+   * HORÁRIOS DA IGREJA
+   * ============================================================
+   */
+
+  selectChurch.addEventListener(
+    'change',
+    (e) => {
+
+      const church =
+        e.target.value;
+
+      selectTime.innerHTML = '';
+
+
+      if (!church) {
+
+        selectTime.innerHTML =
+          '<option value="">Selecione uma igreja primeiro...</option>';
+
+        selectTime.disabled = true;
+
+        return;
+
+      }
+
+
+      selectTime.disabled = false;
+
+
+      const occupiedMap =
+        sheetData.occupied[church] || {};
+
+
+      const defaultOpt =
+        document.createElement('option');
+
+      defaultOpt.value = "";
+
+      defaultOpt.textContent =
+        "Selecione um horário vago...";
+
+      selectTime.appendChild(defaultOpt);
+
+
+      timeSlots.forEach(slot => {
+
+        const opt =
+          document.createElement('option');
+
+        opt.value = slot;
+
+
+        if (occupiedMap[slot]) {
+
+          opt.textContent =
+            `${slot} (Ocupado por: ${occupiedMap[slot]})`;
+
+          opt.disabled = true;
+
+          opt.classList.add(
+            'text-gray-400',
+            'bg-gray-100'
+          );
+
+        } else {
+
+          opt.textContent =
+            `${slot} (Vago)`;
+
         }
 
-        // Salvar localmente no navegador
-        if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
-        sheetData.occupied[church][time] = member;
-        localStorage.setItem('oracao_occupied_local', JSON.stringify(sheetData.occupied));
 
-        showNotification(`Nome "${member}" registrado com sucesso para a igreja ${church} às ${time}!`, 'Sucesso');
-        selectChurch.dispatchEvent(new Event('change'));
-        document.getElementById('inputMember').value = '';
-      } catch (err) {
-        console.error("Erro ao salvar:", err);
-        showNotification('Erro ao salvar agendamento.', 'Erro');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Salvar nome do membro na planilha</span>';
+        selectTime.appendChild(opt);
+
+      });
+
+    }
+  );
+
+
+  /*
+   * ============================================================
+   * PERÍODO DE ORAÇÃO
+   * ============================================================
+   */
+
+  selectPeriod.addEventListener(
+    'change',
+    (e) => {
+
+      const idx = e.target.value;
+
+
+      if (idx === "") {
+
+        motivesContainer.classList.add('hidden');
+
+        return;
+
       }
+
+
+      const period =
+        sheetData.periods[idx];
+
+
+      if (
+        period.main &&
+        period.main.trim() !== ""
+      ) {
+
+        motiveMain.textContent =
+          period.main;
+
+        motiveMainBox.classList.remove('hidden');
+
+      } else {
+
+        motiveMainBox.classList.add('hidden');
+
+      }
+
+
+      motivesList.innerHTML = '';
+
+      let hasAnyMotive = false;
+
+
+      period.motives.forEach((m, i) => {
+
+        if (
+          m &&
+          m.trim() !== ""
+        ) {
+
+          hasAnyMotive = true;
+
+
+          const div =
+            document.createElement('div');
+
+          div.className =
+            'bg-red-50/70 p-2.5 rounded border border-red-100 text-xs';
+
+
+          const strong =
+            document.createElement('strong');
+
+          strong.className =
+            'text-red-800';
+
+          strong.textContent =
+            `Motivo ${i + 1}:`;
+
+
+          div.appendChild(strong);
+
+          div.appendChild(
+            document.createTextNode(
+              " " + m
+            )
+          );
+
+
+          motivesList.appendChild(div);
+
+        }
+
+      });
+
+
+      if (
+        !hasAnyMotive &&
+        (!period.main ||
+         period.main.trim() === "")
+      ) {
+
+        motivesContainer.classList.add('hidden');
+
+      } else {
+
+        motivesContainer.classList.remove('hidden');
+
+      }
+
+    }
+  );
+
+
+  /*
+   * ============================================================
+   * GRAVAÇÃO REMOTA
+   *
+   * Utiliza GET + JSONP para que o navegador consiga
+   * receber a confirmação do Apps Script.
+   * ============================================================
+   */
+
+  function saveToSpreadsheet(
+    church,
+    time,
+    member
+  ) {
+
+    return new Promise((resolve, reject) => {
+
+      if (!scriptUrl) {
+
+        reject(
+          new Error("URL do Apps Script não configurada.")
+        );
+
+        return;
+
+      }
+
+
+      let completed = false;
+
+
+      const callbackName =
+        'jsonp_save_' +
+        Date.now() +
+        '_' +
+        Math.floor(Math.random() * 100000);
+
+
+      const scriptElem =
+        document.createElement('script');
+
+
+      const cleanup = () => {
+
+        if (scriptElem.parentNode) {
+
+          scriptElem.parentNode.removeChild(
+            scriptElem
+          );
+
+        }
+
+        try {
+          delete window[callbackName];
+        } catch (e) {}
+
+      };
+
+
+      const timeout =
+        setTimeout(() => {
+
+          if (completed) return;
+
+          completed = true;
+
+          cleanup();
+
+          reject(
+            new Error(
+              "Tempo limite excedido ao gravar na planilha."
+            )
+          );
+
+        }, 15000);
+
+
+      window[callbackName] =
+        function(data) {
+
+          if (completed) return;
+
+          completed = true;
+
+          clearTimeout(timeout);
+
+          cleanup();
+
+
+          if (
+            data &&
+            data.status === "success"
+          ) {
+
+            resolve(data);
+
+          } else {
+
+            reject(
+              new Error(
+                data && data.message
+                  ? data.message
+                  : "O Apps Script não confirmou a gravação."
+              )
+            );
+
+          }
+
+        };
+
+
+      scriptElem.onerror =
+        function() {
+
+          if (completed) return;
+
+          completed = true;
+
+          clearTimeout(timeout);
+
+          cleanup();
+
+          reject(
+            new Error(
+              "Não foi possível acessar o Apps Script."
+            )
+          );
+
+        };
+
+
+      const url =
+        scriptUrl +
+        "?action=save" +
+        "&church=" +
+        encodeURIComponent(church) +
+        "&time=" +
+        encodeURIComponent(time) +
+        "&member=" +
+        encodeURIComponent(member) +
+        "&callback=" +
+        encodeURIComponent(callbackName);
+
+
+      scriptElem.src = url;
+
+      document.body.appendChild(scriptElem);
+
     });
 
-    // Modals
-    const modalTerms = document.getElementById('modalTerms');
-    document.getElementById('btnTerms').addEventListener('click', () => modalTerms.classList.remove('hidden'));
-    document.getElementById('closeTerms').addEventListener('click', () => modalTerms.classList.add('hidden'));
-    document.getElementById('acceptTerms').addEventListener('click', () => modalTerms.classList.add('hidden'));
+  }
 
-    const modalSettings = document.getElementById('modalSettings');
-    const inputScriptUrl = document.getElementById('inputScriptUrl');
-    const inputSheetUrl = document.getElementById('inputSheetUrl');
 
-    document.getElementById('btnSettings').addEventListener('click', () => {
-      inputScriptUrl.value = scriptUrl;
-      inputSheetUrl.value = sheetUrl;
-      modalSettings.classList.remove('hidden');
-    });
-    document.getElementById('closeSettings').addEventListener('click', () => modalSettings.classList.add('hidden'));
-    
-    document.getElementById('btnSaveSettings').addEventListener('click', () => {
-      scriptUrl = inputScriptUrl.value.trim();
-      sheetUrl = inputSheetUrl.value.trim() || DEFAULT_SHEET_URL;
-      localStorage.setItem('oracao_script_url', scriptUrl);
-      localStorage.setItem('oracao_sheet_url', sheetUrl);
-      
-      modalSettings.classList.add('hidden');
-      loadSpreadsheetData();
-      showNotification('Configurações salvas com sucesso!', 'Configuração');
-    });
+  /*
+   * ============================================================
+   * BOTÃO SALVAR
+   * ============================================================
+   */
 
-    document.getElementById('btnResetDefault').addEventListener('click', () => {
-      scriptUrl = "";
-      sheetUrl = DEFAULT_SHEET_URL;
-      inputScriptUrl.value = "";
-      inputSheetUrl.value = DEFAULT_SHEET_URL;
-      localStorage.removeItem('oracao_script_url');
-      localStorage.setItem('oracao_sheet_url', DEFAULT_SHEET_URL);
-      loadSpreadsheetData();
-      showNotification('Modo Local ativado com sucesso.', 'Configuração');
-    });
+  document
+    .getElementById('btnSubmit')
+    .addEventListener(
+      'click',
+      async () => {
 
-    document.getElementById('btnExportTemplate').addEventListener('click', () => {
-      const csvContent = "data:text/csv;charset=utf-8,GUIA_IGREJA,HORARIO,MEMBRO,PERIODO_DE_ORACAO,MOTIVO_PRINCIPAL,MOTIVO_1\nICM ALVORADA,00:00,,Período 1: Madrugada,Clamor pela santificação,Pelos pastores";
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "modelo_oracao_ininterrupta.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+        const church =
+          selectChurch.value;
 
-    document.getElementById('btnClose').addEventListener('click', () => {
-      window.close();
-      document.body.innerHTML = '<div class="flex items-center justify-center h-screen bg-red-950 text-white"><div class="text-center"><h1 class="text-2xl font-bold mb-2">Janela Fechada</h1><p class="text-sm text-red-200">Você pode fechar esta aba do navegador com segurança.</p></div></div>';
-    });
+        const time =
+          selectTime.value;
 
-    // Auto-carregar na inicialização
-    loadSpreadsheetData();
-  </script>
-</body>
+        const member =
+          document
+            .getElementById('inputMember')
+            .value
+            .trim();
+
+
+        if (
+          !church ||
+          !time ||
+          !member
+        ) {
+
+          showNotification(
+            'Por favor, selecione a igreja, o horário vago e informe o nome do membro.',
+            'Atenção'
+          );
+
+          return;
+
+        }
+
+
+        const btn =
+          document.getElementById('btnSubmit');
+
+
+        btn.disabled = true;
+
+        btn.innerHTML =
+          '<i class="fa-solid fa-spinner fa-spin"></i>' +
+          '<span>Gravando na planilha...</span>';
+
+
+        try {
+
+          /*
+           * A planilha é a fonte oficial.
+           * Não exibimos sucesso antes da confirmação.
+           */
+
+          if (scriptUrl) {
+
+            const result =
+              await saveToSpreadsheet(
+                church,
+                time,
+                member
+              );
+
+
+            /*
+             * Somente depois da confirmação
+             * atualizamos a interface local.
+             */
+
+            if (!sheetData.occupied[church]) {
+
+              sheetData.occupied[church] = {};
+
+            }
+
+
+            sheetData.occupied[church][time] =
+              member;
+
+
+            /*
+             * Cópia local apenas como cache.
+             */
+
+            localStorage.setItem(
+              'oracao_occupied_local',
+              JSON.stringify(
+                sheetData.occupied
+              )
+            );
+
+
+            setSyncStatus(
+              "Sincronizado com Planilha",
+              "success"
+            );
+
+
+            showNotification(
+              `Nome "${member}" registrado com sucesso na planilha para ${church} às ${time}.`,
+              'Gravação concluída'
+            );
+
+
+            selectChurch.dispatchEvent(
+              new Event('change')
+            );
+
+
+            document
+              .getElementById('inputMember')
+              .value = "";
+
+
+          } else {
+
+            /*
+             * Modo local somente quando não existe
+             * URL do Apps Script.
+             */
+
+            if (!sheetData.occupied[church]) {
+
+              sheetData.occupied[church] = {};
+
+            }
+
+
+            sheetData.occupied[church][time] =
+              member;
+
+
+            localStorage.setItem(
+              'oracao_occupied_local',
+              JSON.stringify(
+                sheetData.occupied
+              )
+            );
+
+
+            showNotification(
+              `Nome "${member}" foi salvo somente neste dispositivo.`,
+              'Modo Local'
+            );
+
+
+            selectChurch.dispatchEvent(
+              new Event('change')
+            );
+
+
+            document
+              .getElementById('inputMember')
+              .value = "";
+
+          }
+
+
+        } catch (err) {
+
+          console.error(
+            "Erro ao gravar:",
+            err
+          );
+
+
+          setSyncStatus(
+            "Erro na sincronização",
+            "error"
+          );
+
+
+          showNotification(
+            "O nome NÃO foi confirmado na planilha.\n\n" +
+            "Verifique a implantação do Apps Script e tente novamente.\n\n" +
+            "Detalhes: " +
+            err.message,
+            "Erro ao gravar"
+          );
+
+
+        } finally {
+
+          btn.disabled = false;
+
+          btn.innerHTML =
+            '<i class="fa-solid fa-check"></i>' +
+            '<span>Salvar nome do membro na planilha</span>';
+
+        }
+
+      }
+    );
+
+
+  /*
+   * ============================================================
+   * TERMOS
+   * ============================================================
+   */
+
+  const modalTerms =
+    document.getElementById('modalTerms');
+
+
+  document
+    .getElementById('btnTerms')
+    .addEventListener(
+      'click',
+      () => modalTerms.classList.remove('hidden')
+    );
+
+
+  document
+    .getElementById('closeTerms')
+    .addEventListener(
+      'click',
+      () => modalTerms.classList.add('hidden')
+    );
+
+
+  document
+    .getElementById('acceptTerms')
+    .addEventListener(
+      'click',
+      () => modalTerms.classList.add('hidden')
+    );
+
+
+  /*
+   * ============================================================
+   * CONFIGURAÇÕES
+   * ============================================================
+   */
+
+  const modalSettings =
+    document.getElementById('modalSettings');
+
+  const inputScriptUrl =
+    document.getElementById('inputScriptUrl');
+
+  const inputSheetUrl =
+    document.getElementById('inputSheetUrl');
+
+
+  document
+    .getElementById('btnSettings')
+    .addEventListener(
+      'click',
+      () => {
+
+        inputScriptUrl.value =
+          scriptUrl;
+
+        inputSheetUrl.value =
+          sheetUrl;
+
+        modalSettings.classList.remove(
+          'hidden'
+        );
+
+      }
+    );
+
+
+  document
+    .getElementById('closeSettings')
+    .addEventListener(
+      'click',
+      () =>
+        modalSettings.classList.add('hidden')
+    );
+
+
+  /*
+   * ============================================================
+   * SALVAR CONFIGURAÇÕES
+   * ============================================================
+   */
+
+  document
+    .getElementById('btnSaveSettings')
+    .addEventListener(
+      'click',
+      () => {
+
+        const newScriptUrl =
+          inputScriptUrl.value.trim();
+
+        const newSheetUrl =
+          inputSheetUrl.value.trim();
+
+
+        scriptUrl =
+          newScriptUrl ||
+          DEFAULT_SCRIPT_URL;
+
+
+        sheetUrl =
+          newSheetUrl ||
+          DEFAULT_SHEET_URL;
+
+
+        localStorage.setItem(
+          'oracao_script_url',
+          scriptUrl
+        );
+
+
+        localStorage.setItem(
+          'oracao_sheet_url',
+          sheetUrl
+        );
+
+
+        modalSettings.classList.add(
+          'hidden'
+        );
+
+
+        loadSpreadsheetData();
+
+
+        showNotification(
+          'Configurações salvas com sucesso!',
+          'Configuração'
+        );
+
+      }
+    );
+
+
+  /*
+   * ============================================================
+   * RESTAURAR PADRÃO
+   * ============================================================
+   */
+
+  document
+    .getElementById('btnResetDefault')
+    .addEventListener(
+      'click',
+      () => {
+
+        scriptUrl =
+          DEFAULT_SCRIPT_URL;
+
+        sheetUrl =
+          DEFAULT_SHEET_URL;
+
+
+        inputScriptUrl.value =
+          DEFAULT_SCRIPT_URL;
+
+        inputSheetUrl.value =
+          DEFAULT_SHEET_URL;
+
+
+        localStorage.setItem(
+          'oracao_script_url',
+          scriptUrl
+        );
+
+
+        localStorage.setItem(
+          'oracao_sheet_url',
+          sheetUrl
+        );
+
+
+        loadSpreadsheetData();
+
+
+        showNotification(
+          'Configuração padrão restaurada. O aplicativo utilizará novamente a planilha configurada.',
+          'Configuração'
+        );
+
+      }
+    );
+
+
+  /*
+   * ============================================================
+   * EXPORTAR MODELO
+   * ============================================================
+   */
+
+  document
+    .getElementById('btnExportTemplate')
+    .addEventListener(
+      'click',
+      () => {
+
+        const csvContent =
+          "data:text/csv;charset=utf-8," +
+          "GUIA_IGREJA,HORARIO,MEMBRO,PERIODO_DE_ORACAO,MOTIVO_PRINCIPAL,MOTIVO_1\n" +
+          "ICM ALVORADA,00:00,,Período 1: Madrugada,Clamor pela santificação,Pelos pastores";
+
+
+        const encodedUri =
+          encodeURI(csvContent);
+
+
+        const link =
+          document.createElement("a");
+
+
+        link.setAttribute(
+          "href",
+          encodedUri
+        );
+
+
+        link.setAttribute(
+          "download",
+          "modelo_oracao_ininterrupta.csv"
+        );
+
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+      }
+    );
+
+
+  /*
+   * ============================================================
+   * FECHAR
+   * ============================================================
+   */
+
+  document
+    .getElementById('btnClose')
+    .addEventListener(
+      'click',
+      () => {
+
+        window.close();
+
+
+        document.body.innerHTML =
+          '<div class="flex items-center justify-center h-screen bg-red-950 text-white">' +
+          '<div class="text-center">' +
+          '<h1 class="text-2xl font-bold mb-2">Janela Fechada</h1>' +
+          '<p class="text-sm text-red-200">Você pode fechar esta aba do navegador com segurança.</p>' +
+          '</div>' +
+          '</div>';
+
+      }
+    );
+
+
+  /*
+   * ============================================================
+   * INICIALIZAÇÃO
+   * ============================================================
+   */
+
+  loadSpreadsheetData();
+
+</script></body>
 </html>
