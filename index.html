@@ -155,13 +155,78 @@
           <input type="text" id="inputChurchesList" placeholder="Ex: ICM ALVORADA, ICM CERÂMICA" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
         </div>
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
-          <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Como habilitar a gravação na planilha:</strong>
-          <ol class="list-decimal pl-4 space-y-1">
-            <li>Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, substitua o código pelo código atualizado abaixo.</li>
-            <li>Clique em <strong>Implantar > Gerenciar implantações</strong>, clique no ícone de lápis (Editar), selecione <strong>Nova versão</strong> e clique em <em>Implantar</em>.</li>
-            <li>Certifique-se de que o acesso esteja definido como <strong>Qualquer pessoa</strong>. Cole a URL no campo acima.</li>
-          </ol>
-          <textarea readonly class="w-full h-28 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doPost(e) {
+        <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Como habilitar leitura e gravação na planilha:</strong>
+        <ol class="list-decimal pl-4 space-y-1">
+          <li>Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, substitua o código pelo script unificado abaixo.</li>
+          <li>Clique em <strong>Implantar > Gerenciar implantações</strong>, clique no ícone de lápis (Editar), selecione <strong>Nova versão</strong> e clique em <em>Implantar</em>.</li>
+          <li>Certifique-se de que o acesso esteja definido como <strong>Qualquer pessoa</strong>. Cole a URL do Web App no campo acima.</li>
+        </ol>
+        <textarea readonly class="w-full h-32 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doGet(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheets = ss.getSheets();
+    var data = { churches: [], occupied: {}, periods: [] };
+    
+    var periodSheet = ss.getSheetByName("PERÍODOS");
+    if (periodSheet) {
+      var pRows = periodSheet.getDataRange().getValues();
+      for (var i = 1; i < pRows.length; i++) {
+        var r = pRows[i];
+        if (r[0]) {
+          var motives = [];
+          for (var j = 2; j < r.length; j++) {
+            motives.push(r[j] !== undefined && r[j] !== null ? String(r[j]) : "");
+          }
+          data.periods.push({
+            name: String(r[0]),
+            main: r[1] ? String(r[1]) : "",
+            motives: motives
+          });
+        }
+      }
+    }
+    
+    sheets.forEach(function(sheet) {
+      var name = sheet.getName();
+      if (name !== "PERÍODOS") {
+        data.churches.push(name);
+        data.occupied[name] = {};
+        var rows = sheet.getDataRange().getValues();
+        for (var i = 0; i < rows.length; i++) {
+          var timeVal = "";
+          var memberVal = "";
+          for (var c = 0; c < rows[i].length; c++) {
+            var valStr = String(rows[i][c]).trim();
+            if (/^\d{2}:\d{2}$/.test(valStr)) {
+              timeVal = valStr;
+            } else if (c > 0 && timeVal && !memberVal) {
+              memberVal = valStr;
+            }
+          }
+          if (!timeVal && rows[i][0]) {
+            var v0 = String(rows[i][0]).trim();
+            if (/^\d{2}:\d{2}$/.test(v0)) timeVal = v0;
+          }
+          if (!memberVal && rows[i][1]) {
+            var v1 = String(rows[i][1]).trim();
+            if (v1 && v1 !== timeVal) memberVal = v1;
+          }
+          if (timeVal && memberVal) {
+            data.occupied[name][timeVal] = memberVal;
+          }
+        }
+      }
+    });
+
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
   try {
@@ -215,7 +280,7 @@
     lock.releaseLock();
   }
 }</textarea>
-        </div>
+      </div>
         <div class="flex space-x-2 pt-2">
           <button id="btnResetDefault" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Restaurar Padrão</button>
           <button id="btnSaveSettings" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Salvar Configurações</button>
@@ -289,105 +354,151 @@
       syncStatus.textContent = "Sincronizando com a planilha...";
       syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
 
-      try {
-        const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=PERÍODOS`;
-        const response = await fetch(gvizUrl);
-        if (response.ok) {
-          const text = await response.text();
-          const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
-          if (jsonMatch && jsonMatch[1]) {
-            const data = JSON.parse(jsonMatch[1]);
-            if (data.table && data.table.rows && data.table.rows.length > 1) {
-              const loadedPeriods = [];
-              for (let i = 1; i < data.table.rows.length; i++) {
-                const row = data.table.rows[i];
-                const c = row.c;
-                if (c && c[0] && c[0].v) {
-                  const periodName = String(c[0].v);
-                  const mainMotive = c[1] && c[1].v ? String(c[1].v) : "";
-                  const motives = [];
-                  for (let j = 2; j < 16; j++) {
-                    motives.push(c[j] && c[j].v !== null && c[j].v !== undefined ? String(c[j].v) : "");
+      let loadedSuccessfully = false;
+
+      // 1. Tentar carregar via Web App (doGet) se a URL do script estiver configurada (Evita CORS)
+      if (scriptUrl) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const res = await fetch(scriptUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.churches && data.churches.length > 0) {
+              sheetData.churches = data.churches;
+              sheetData.occupied = data.occupied || {};
+              sheetData.periods = data.periods || [];
+              loadedSuccessfully = true;
+            }
+          }
+        } catch (err) {
+          console.warn("Aviso ao carregar via Apps Script Web App:", err);
+        }
+      }
+
+      // 2. Se não carregou via Script, tentar GViz com timeout de segurança
+      if (!loadedSuccessfully) {
+        try {
+          const fetchWithTimeout = async (url, timeout = 5000) => {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+              const response = await fetch(url, { signal: controller.signal });
+              clearTimeout(id);
+              return response;
+            } catch (e) {
+              clearTimeout(id);
+              throw e;
+            }
+          };
+
+          const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=PERÍODOS`;
+          const response = await fetchWithTimeout(gvizUrl, 5000);
+          if (response.ok) {
+            const text = await response.text();
+            const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+            if (jsonMatch && jsonMatch[1]) {
+              const data = JSON.parse(jsonMatch[1]);
+              if (data.table && data.table.rows && data.table.rows.length > 1) {
+                const loadedPeriods = [];
+                for (let i = 1; i < data.table.rows.length; i++) {
+                  const row = data.table.rows[i];
+                  const c = row.c;
+                  if (c && c[0] && c[0].v) {
+                    const periodName = String(c[0].v);
+                    const mainMotive = c[1] && c[1].v ? String(c[1].v) : "";
+                    const motives = [];
+                    for (let j = 2; j < 16; j++) {
+                      motives.push(c[j] && c[j].v !== null && c[j].v !== undefined ? String(c[j].v) : "");
+                    }
+                    loadedPeriods.push({
+                      name: periodName,
+                      main: mainMotive,
+                      motives: motives
+                    });
                   }
-                  loadedPeriods.push({
-                    name: periodName,
-                    main: mainMotive,
-                    motives: motives
-                  });
                 }
-              }
-              if (loadedPeriods.length > 0) {
-                sheetData.periods = loadedPeriods;
+                if (loadedPeriods.length > 0) {
+                  sheetData.periods = loadedPeriods;
+                }
               }
             }
           }
-        }
 
-        let configuredChurches = [];
-        const savedChurchesStr = localStorage.getItem('oracao_churches');
-        if (savedChurchesStr) {
-          configuredChurches = savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean);
-        } else {
-          configuredChurches = ["ICM ALVORADA", "ICM CERÂMICA"];
-        }
+          let configuredChurches = [];
+          const savedChurchesStr = localStorage.getItem('oracao_churches');
+          if (savedChurchesStr) {
+            configuredChurches = savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean);
+          } else {
+            configuredChurches = ["ICM ALVORADA", "ICM CERÂMICA"];
+          }
 
-        sheetData.churches = configuredChurches;
-        sheetData.occupied = {};
+          sheetData.churches = configuredChurches;
+          sheetData.occupied = {};
 
-        for (const churchName of configuredChurches) {
-          try {
-            const churchUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(churchName)}`;
-            const res = await fetch(churchUrl);
-            if (res.ok) {
-              const txt = await res.text();
-              const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
-              if (match && match[1]) {
-                const cData = JSON.parse(match[1]);
-                if (cData && cData.status === 'ok' && cData.table && cData.table.rows) {
-                  sheetData.occupied[churchName] = {};
-                  for (let i = 0; i < cData.table.rows.length; i++) {
-                    const r = cData.table.rows[i];
-                    if (r && r.c) {
-                      let timeVal = "";
-                      let memberVal = "";
-                      r.c.forEach((cell, colIdx) => {
-                        if (cell && cell.v !== null && cell.v !== undefined) {
-                          const valStr = String(cell.v).trim();
-                          if (/^\d{2}:\d{2}$/.test(valStr)) {
-                            timeVal = valStr;
-                          } else if (colIdx > 0 && timeVal && !memberVal) {
-                            memberVal = valStr;
+          for (const churchName of configuredChurches) {
+            try {
+              const churchUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(churchName)}`;
+              const res = await fetchWithTimeout(churchUrl, 4000);
+              if (res.ok) {
+                const txt = await res.text();
+                const match = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+                if (match && match[1]) {
+                  const cData = JSON.parse(match[1]);
+                  if (cData && cData.status === 'ok' && cData.table && cData.table.rows) {
+                    sheetData.occupied[churchName] = {};
+                    for (let i = 0; i < cData.table.rows.length; i++) {
+                      const r = cData.table.rows[i];
+                      if (r && r.c) {
+                        let timeVal = "";
+                        let memberVal = "";
+                        r.c.forEach((cell, colIdx) => {
+                          if (cell && cell.v !== null && cell.v !== undefined) {
+                            const valStr = String(cell.v).trim();
+                            if (/^\d{2}:\d{2}$/.test(valStr)) {
+                              timeVal = valStr;
+                            } else if (colIdx > 0 && timeVal && !memberVal) {
+                              memberVal = valStr;
+                            }
                           }
+                        });
+                        if (!timeVal && r.c[0] && r.c[0].v) {
+                          const v0 = String(r.c[0].v).trim();
+                          if (/^\d{2}:\d{2}$/.test(v0)) timeVal = v0;
                         }
-                      });
-                      if (!timeVal && r.c[0] && r.c[0].v) {
-                        const v0 = String(r.c[0].v).trim();
-                        if (/^\d{2}:\d{2}$/.test(v0)) timeVal = v0;
-                      }
-                      if (!memberVal && r.c[1] && r.c[1].v) {
-                        const v1 = String(r.c[1].v).trim();
-                        if (v1 && v1 !== timeVal) memberVal = v1;
-                      }
+                        if (!memberVal && r.c[1] && r.c[1].v) {
+                          const v1 = String(r.c[1].v).trim();
+                          if (v1 && v1 !== timeVal) memberVal = v1;
+                        }
 
-                      if (timeVal && memberVal) {
-                        sheetData.occupied[churchName][timeVal] = memberVal;
+                        if (timeVal && memberVal) {
+                          sheetData.occupied[churchName][timeVal] = memberVal;
+                        }
                       }
                     }
                   }
                 }
               }
+            } catch (err) {
+              console.warn(`Aviso ao carregar igreja ${churchName}:`, err);
             }
-          } catch (err) {
-            console.warn(`Aviso ao carregar igreja ${churchName}:`, err);
           }
+          loadedSuccessfully = true;
+        } catch (err) {
+          console.warn("GViz falhou ou bloqueado por CORS:", err);
         }
+      }
 
+      // 3. Fallback final se nada carregar (garante que nunca trava a tela)
+      if (!loadedSuccessfully || sheetData.churches.length === 0) {
+        const savedChurchesStr = localStorage.getItem('oracao_churches');
+        sheetData.churches = savedChurchesStr ? savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean) : ["ICM ALVORADA", "ICM CERÂMICA"];
+        syncStatus.textContent = scriptUrl ? "Erro de conexão com Script" : "Modo padrão (Configure o Script)";
+        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
+      } else {
         syncStatus.textContent = "Planilha sincronizada";
         syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium";
-      } catch (err) {
-        console.warn("Erro na sincronização:", err);
-        syncStatus.textContent = "Erro na sincronização";
-        syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-medium";
       }
 
       initChurches();
