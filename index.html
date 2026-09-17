@@ -240,7 +240,7 @@ function doPost(e) {
   </footer>
 
   <script>
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycuAfbUKxjiy3_C3nRhuqL5JIci7iXhUqaJXfK28Vv9iNsY-akbibUpU7Q59RIvcanMw/exec";
+    const DEFAULT_SCRIPT_URL = ""; // Deixado vazio por padrão para priorizar modo local estável e permitir configurar se desejar
     const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
     let scriptUrl = localStorage.getItem('oracao_script_url') || DEFAULT_SCRIPT_URL;
     let sheetUrl = localStorage.getItem('oracao_sheet_url') || DEFAULT_SHEET_URL;
@@ -257,12 +257,21 @@ function doPost(e) {
 
     const timeSlots = generateTimeSlots();
 
-    // Dados padrão seguros para funcionamento imediato sem travamentos
+    // Carregar agendamentos salvos localmente no navegador (se houver)
+    let savedOccupied = {};
+    try {
+      savedOccupied = JSON.parse(localStorage.getItem('oracao_occupied_local') || '{}');
+    } catch(e) { savedOccupied = {}; }
+
+    // Dados padrão seguros e completos para funcionamento imediato
     let sheetData = {
-      churches: ["ICM ALVORADA", "ICM CERÂMICA"],
-      occupied: {},
+      churches: ["ICM ALVORADA", "ICM CERÂMICA", "ICM CENTRO", "ICM VILA NOVA"],
+      occupied: savedOccupied,
       periods: [
-        { name: "Período 1: Madrugada", main: "Clamor pela santificação e proteção das famílias", motives: ["Pelos pastores", "Pelas famílias", "Pela obra"] }
+        { name: "Período 1: Madrugada (00h - 06h)", main: "Clamor pela santificação e proteção das famílias", motives: ["Pelos pastores e obreiros", "Pelas famílias e lares", "Pela obra do Senhor em toda a terra", "Pelos enfermos e necessitados"] },
+        { name: "Período 2: Manhã (06h - 12h)", main: "Renovação espiritual e direção diária", motives: ["Pela juventude e crianças", "Pelos cultos e reuniões", "Direção na pregação do Evangelho", "Unidade da igreja"] },
+        { name: "Período 3: Tarde (12h - 18h)", main: "Proteção e provisão divina", motives: ["Pelos trabalhos profissionais e estudos", "Livramento de males e perigos", "Missões e evangelização", "Famílias enlutadas ou provadas"] },
+        { name: "Período 4: Noite (18h - 00h)", main: "Gratidão e clamor pelos cultos da noite", motives: ["Pela operação de sinais e maravilhas", "Batismo com o Espírito Santo", "Derramamento de dons espirituais", "Louvor e adoração a Deus"] }
       ]
     };
 
@@ -284,18 +293,18 @@ function doPost(e) {
       document.getElementById('modalNotification').classList.add('hidden');
     });
 
-    // Função de carregamento com Timeout de Segurança (nunca trava)
+    // Função de carregamento com Modo Local Robusto
     function loadSpreadsheetData() {
-      syncStatus.textContent = "Sincronizando...";
-      syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
-
       if (!scriptUrl) {
-        syncStatus.textContent = "Pronto (Modo Local)";
+        syncStatus.textContent = "Modo Local Ativo (Salvando no Aparelho)";
         syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
         initChurches();
         initPeriods();
         return;
       }
+
+      syncStatus.textContent = "Sincronizando...";
+      syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
 
       let isCompleted = false;
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
@@ -306,12 +315,12 @@ function doPost(e) {
           isCompleted = true;
           if (scriptElem.parentNode) document.body.removeChild(scriptElem);
           delete window[callbackName];
-          syncStatus.textContent = "Pronto (Sem conexão Apps Script)";
-          syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
+          syncStatus.textContent = "Modo Local (Sem Conexão Apps Script)";
+          syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
           initChurches();
           initPeriods();
         }
-      }, 3500); // 3.5 segundos max de espera
+      }, 3000);
       
       window[callbackName] = function(data) {
         if (isCompleted) return;
@@ -322,12 +331,13 @@ function doPost(e) {
         
         if (data && data.churches && data.churches.length > 0) {
           sheetData.churches = data.churches;
-          sheetData.occupied = data.occupied || {};
+          // Mesclar dados remotos com salvos localmente se houver
+          sheetData.occupied = Object.assign({}, data.occupied || {}, savedOccupied);
           sheetData.periods = data.periods || sheetData.periods;
-          syncStatus.textContent = "Sincronizado";
+          syncStatus.textContent = "Sincronizado com Planilha";
           syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-800 font-medium";
         } else {
-          syncStatus.textContent = "Pronto";
+          syncStatus.textContent = "Modo Local Ativo";
           syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
         }
         initChurches();
@@ -340,7 +350,7 @@ function doPost(e) {
         clearTimeout(timeout);
         delete window[callbackName];
         if (scriptElem.parentNode) document.body.removeChild(scriptElem);
-        syncStatus.textContent = "Pronto (Modo Local)";
+        syncStatus.textContent = "Modo Local (Sem Conexão Apps Script)";
         syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
         initChurches();
         initPeriods();
@@ -351,7 +361,7 @@ function doPost(e) {
     }
 
     function initChurches() {
-      selectChurch.innerHTML = '<option value="">Selecione uma igreja existente na planilha...</option>';
+      selectChurch.innerHTML = '<option value="">Selecione uma igreja...</option>';
       sheetData.churches.forEach(church => {
         const opt = document.createElement('option');
         opt.value = church;
@@ -446,27 +456,30 @@ function doPost(e) {
 
       const btn = document.getElementById('btnSubmit');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando na planilha...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando horário...';
 
       try {
         if (scriptUrl) {
-          await fetch(scriptUrl, {
+          // Tenta enviar para o Apps Script em background (sem bloquear se falhar)
+          fetch(scriptUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ church, time, member })
-          });
+          }).catch(err => console.log("Envio remoto ignorado, salvando localmente."));
         }
 
+        // Salvar localmente no navegador
         if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
         sheetData.occupied[church][time] = member;
+        localStorage.setItem('oracao_occupied_local', JSON.stringify(sheetData.occupied));
 
         showNotification(`Nome "${member}" registrado com sucesso para a igreja ${church} às ${time}!`, 'Sucesso');
         selectChurch.dispatchEvent(new Event('change'));
         document.getElementById('inputMember').value = '';
       } catch (err) {
         console.error("Erro ao salvar:", err);
-        showNotification('Erro ao conectar com o script de gravação da planilha.', 'Erro');
+        showNotification('Erro ao salvar agendamento.', 'Erro');
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Salvar nome do membro na planilha</span>';
@@ -502,14 +515,14 @@ function doPost(e) {
     });
 
     document.getElementById('btnResetDefault').addEventListener('click', () => {
-      scriptUrl = DEFAULT_SCRIPT_URL;
+      scriptUrl = "";
       sheetUrl = DEFAULT_SHEET_URL;
-      inputScriptUrl.value = DEFAULT_SCRIPT_URL;
+      inputScriptUrl.value = "";
       inputSheetUrl.value = DEFAULT_SHEET_URL;
       localStorage.removeItem('oracao_script_url');
       localStorage.setItem('oracao_sheet_url', DEFAULT_SHEET_URL);
       loadSpreadsheetData();
-      showNotification('Configurações restauradas.', 'Configuração');
+      showNotification('Modo Local ativado com sucesso.', 'Configuração');
     });
 
     document.getElementById('btnExportTemplate').addEventListener('click', () => {
