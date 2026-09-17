@@ -1,4 +1,4 @@
-﻿
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -26,9 +26,9 @@
         <i class="fa-solid fa-file-contract"></i>
         <span class="hidden sm:inline">Termos</span>
       </button>
-      <button id="btnSettings" title="Configurar Planilha" class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
+      <button id="btnSettings" title="Configurar Planilha e Gravação" class="bg-red-900 hover:bg-red-950 px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
         <i class="fa-solid fa-gear"></i>
-        <span class="hidden sm:inline">Planilha</span>
+        <span class="hidden sm:inline">Configurar</span>
       </button>
       <button id="btnClose" title="Fechar Janela" class="bg-red-950 hover:bg-black px-3 py-1.5 rounded-lg text-sm flex items-center space-x-1 transition">
         <i class="fa-solid fa-xmark"></i>
@@ -42,11 +42,11 @@
     <div class="bg-white border border-red-200 rounded-xl shadow-sm p-5 mb-6">
       <div class="flex justify-between items-center mb-2">
         <h2 class="text-lg font-semibold text-red-800 flex items-center">
-          <i class="fa-solid fa-church mr-2 text-red-600"></i> Agendamento de Vigília
+          Programação de horários
         </h2>
         <span id="syncStatus" class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">Conectando à planilha...</span>
       </div>
-      <p class="text-sm text-red-600 mb-4">Selecione a igreja (guia com "ICM"), escolha um horário vago e o período de oração conforme os dados oficiais.</p>
+      <p class="text-sm text-red-600 mb-4">Selecione a igreja, escolha um horário vago e informe o nome do membro para registrar.</p>
       
       <!-- Church Selector -->
       <div class="mb-4">
@@ -70,19 +70,19 @@
         <input type="text" id="inputMember" placeholder="Digite seu nome completo para registrar no horário" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
       </div>
 
-      <!-- Prayer Period Selector -->
-      <div class="mb-4">
-        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Período de Oração (Guia PERÍODOS - Coluna A)</label>
+      <!-- Save Button -->
+      <button id="btnSubmit" class="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-lg shadow transition flex items-center justify-center space-x-2 mb-4">
+        <i class="fa-solid fa-check"></i>
+        <span>Salvar nome do membro na planilha</span>
+      </button>
+
+      <!-- Prayer Period Selector (Now below the save button and optional) -->
+      <div class="mb-2">
+        <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">Período de Oração (Guia PERÍODOS - Coluna A) <span class="text-gray-400 font-normal">(Opcional)</span></label>
         <select id="selectPeriod" class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
           <option value="">Carregando períodos da guia PERÍODOS...</option>
         </select>
       </div>
-
-      <!-- Save Button -->
-      <button id="btnSubmit" class="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-lg shadow transition flex items-center justify-center space-x-2">
-        <i class="fa-solid fa-check"></i>
-        <span>Salvar Nome do Membro na Planilha</span>
-      </button>
     </div>
 
     <div id="motivesContainer" class="bg-white border border-red-200 rounded-xl shadow-sm p-5 hidden">
@@ -95,7 +95,7 @@
           <p id="motiveMain" class="text-gray-700"></p>
         </div>
         <div id="motivesList" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <!-- Motivos carregados estritamente da planilha (vazios ficam ocultos) -->
+          <!-- Motivos carregados estritamente da planilha -->
         </div>
       </div>
     </div>
@@ -121,9 +121,8 @@
         </button>
       </div>
       <div class="text-sm text-gray-700 space-y-3 max-h-96 overflow-y-auto pr-2">
-        <p>1. O aplicativo <strong>Oração Ininterrupta</strong> lê automaticamente todas as guias de igrejas iniciadas com "ICM" (como ICM ALVORADA, ICM CERÂMICA e novas guias criadas).</p>
-        <p>2. A primeira linha da guia <strong>PERÍODOS</strong> é tratada como cabeçalho e ignorada no carregamento dos períodos de oração.</p>
-        <p>3. Os horários de 15 em 15 minutos são preenchidos conforme os registros de membros encontrados nas respectivas guias.</p>
+        <p>1. O aplicativo <strong>Oração Ininterrupta</strong> lê automaticamente todas as guias de igrejas iniciadas com "ICM".</p>
+        <p>2. Para que o salvamento atualize diretamente a sua planilha do Google Sheets, é necessário configurar a URL do Web App do Google Apps Script nas configurações.</p>
       </div>
       <div class="mt-6 text-right">
         <button id="acceptTerms" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Entendido</button>
@@ -132,10 +131,10 @@
   </div>
 
   <div id="modalSettings" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-red-100">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-red-100 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-bold text-red-800 flex items-center">
-          <i class="fa-solid fa-gear mr-2"></i> Configuração da Planilha
+          <i class="fa-solid fa-gear mr-2"></i> Configuração da Planilha e Gravação
         </h3>
         <button id="closeSettings" class="text-gray-400 hover:text-gray-600">
           <i class="fa-solid fa-xmark text-xl"></i>
@@ -143,22 +142,51 @@
       </div>
       <div class="space-y-4 text-sm text-gray-700">
         <div>
-          <label class="block font-semibold text-red-800 mb-1">URL da Planilha do Google Drive</label>
+          <label class="block font-semibold text-red-800 mb-1">URL da Planilha do Google Drive (Leitura)</label>
           <input type="text" id="inputSheetUrl" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+        </div>
+        <div>
+          <label class="block font-semibold text-red-800 mb-1">URL do Web App do Google Apps Script (Escrita/Gravação)</label>
+          <input type="text" id="inputScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+          <p class="text-[11px] text-gray-500 mt-1">Necessário para gravar os nomes diretamente na planilha. Veja as instruções abaixo.</p>
         </div>
         <div>
           <label class="block font-semibold text-red-800 mb-1">Igrejas (Nomes das Guias, separados por vírgula)</label>
           <input type="text" id="inputChurchesList" placeholder="Ex: ICM ALVORADA, ICM CERÂMICA" class="w-full border border-red-300 rounded-lg p-2.5 text-xs bg-red-50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
-          <p class="text-[11px] text-gray-500 mt-1">Informe exatamente os nomes das guias (abas) de igrejas presentes na sua planilha.</p>
         </div>
-        <div class="flex space-x-2">
+        <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-900">
+          <strong class="block font-bold mb-1"><i class="fa-solid fa-info-circle"></i> Como habilitar a gravação na planilha:</strong>
+          <ol class="list-decimal pl-4 space-y-1">
+            Na sua planilha do Google, acesse <strong>Extensões > Apps Script</strong>, cole o código abaixo, clique em <strong>Implantar > Nova implantação</strong> (tipo: <em>Aplicativo da Web</em>, acesso: <em>Qualquer pessoa</em>) e cole a URL gerada no campo acima.
+          </ol>
+          <textarea readonly class="w-full h-24 mt-2 bg-white border border-amber-300 rounded p-2 font-mono text-[10px] select-all">function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(data.church);
+    if (!sheet) sheet = ss.insertSheet(data.church);
+    var rows = sheet.getDataRange().getValues();
+    var rowIndex = -1;
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i][0]).trim() === String(data.time).trim()) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex > -1) { sheet.getRange(rowIndex, 2).setValue(data.member); }
+    else { sheet.appendRow([data.time, data.member]); }
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  } finally { lock.releaseLock(); }
+}</textarea>
+        </div>
+        <div class="flex space-x-2 pt-2">
           <button id="btnResetDefault" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Restaurar Padrão</button>
           <button id="btnSaveSettings" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex-1">Salvar Configurações</button>
         </div>
         <hr class="border-red-100 my-2">
         <div>
           <h4 class="font-semibold text-red-800 mb-1">Exportar Modelo Padrão</h4>
-          <p class="text-xs text-gray-600 mb-2">Baixe o modelo CSV estruturado para importação ou criação por outros usuários.</p>
           <button id="btnExportTemplate" class="w-full bg-red-100 hover:bg-red-200 text-red-800 font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center space-x-2 border border-red-200">
             <i class="fa-solid fa-download"></i>
             <span>Exportar Modelo Padrão (CSV)</span>
@@ -175,14 +203,13 @@
   <script>
     const DEFAULT_URL = "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
     let sheetUrl = localStorage.getItem('oracao_sheet_url') || DEFAULT_URL;
+    let scriptUrl = localStorage.getItem('oracao_script_url') || "";
 
-    // Extrair ID da planilha do link do Google Drive
     function extractSpreadsheetId(url) {
       const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
       return match ? match[1] : "1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck";
     }
 
-    // Gerar 96 horários de 15 em 15 minutos (00:00 até 23:45)
     function generateTimeSlots() {
       const slots = [];
       for (let h = 0; h < 24; h++) {
@@ -221,14 +248,12 @@
       document.getElementById('modalNotification').classList.add('hidden');
     });
 
-    // Função para carregar dados da planilha dinamicamente sem sondagem excessiva
     async function loadSpreadsheetData() {
       const sheetId = extractSpreadsheetId(sheetUrl);
       syncStatus.textContent = "Sincronizando com a planilha...";
       syncStatus.className = "text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
 
       try {
-        // 1. Carregar guia PERÍODOS
         const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=PERÍODOS`;
         const response = await fetch(gvizUrl);
         if (response.ok) {
@@ -262,42 +287,17 @@
           }
         }
 
-        // 2. Obter lista de igrejas (via configuração salva ou guia IGREJAS opcional)
         let configuredChurches = [];
         const savedChurchesStr = localStorage.getItem('oracao_churches');
         if (savedChurchesStr) {
           configuredChurches = savedChurchesStr.split(',').map(s => s.trim()).filter(Boolean);
         } else {
-          try {
-            const igRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=IGREJAS`);
-            if (igRes.ok) {
-              const igTxt = await igRes.text();
-              const igMatch = igTxt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
-              if (igMatch && igMatch[1]) {
-                const igData = JSON.parse(igMatch[1]);
-                if (igData && igData.status === 'ok' && igData.table && igData.table.rows) {
-                  igData.table.rows.forEach((r, idx) => {
-                    if (idx > 0 && r.c && r.c[0] && r.c[0].v) {
-                      const name = String(r.c[0].v).trim();
-                      if (name) configuredChurches.push(name);
-                    }
-                  });
-                }
-              }
-            }
-          } catch (e) {
-            // Guia IGREJAS não obrigatória
-          }
-        }
-
-        if (configuredChurches.length === 0) {
           configuredChurches = ["ICM ALVORADA", "ICM CERÂMICA"];
         }
 
         sheetData.churches = configuredChurches;
         sheetData.occupied = {};
 
-        // 3. Carregar dados de horários apenas das igrejas informadas
         for (const churchName of configuredChurches) {
           try {
             const churchUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(churchName)}`;
@@ -369,7 +369,7 @@
     }
 
     function initPeriods() {
-      selectPeriod.innerHTML = '<option value="">Selecione o período de oração...</option>';
+      selectPeriod.innerHTML = '<option value="">Selecione o período de oração (opcional)...</option>';
       sheetData.periods.forEach((p, idx) => {
         const opt = document.createElement('option');
         opt.value = idx;
@@ -378,7 +378,6 @@
       });
     }
 
-    // Ao selecionar a igreja, preenche os 96 horários
     selectChurch.addEventListener('change', (e) => {
       const church = e.target.value;
       selectTime.innerHTML = '';
@@ -409,7 +408,6 @@
       });
     });
 
-    // Ao selecionar o período, carrega os motivos estritamente da planilha
     selectPeriod.addEventListener('change', (e) => {
       const idx = e.target.value;
       if (idx === "") {
@@ -444,28 +442,49 @@
       }
     });
 
-    // Submissão: Preencher o nome do membro no horário selecionado
-    document.getElementById('btnSubmit').addEventListener('click', () => {
+    // Submissão: Grava na planilha via Apps Script Web App (se configurado)
+    document.getElementById('btnSubmit').addEventListener('click', async () => {
       const church = selectChurch.value;
       const time = selectTime.value;
       const member = document.getElementById('inputMember').value.trim();
-      const period = selectPeriod.value;
 
-      if (!church || !time || !member || period === "") {
-        showNotification('Por favor, selecione a igreja, o horário vago, informe o nome do membro e selecione o período de oração.', 'Atenção');
+      if (!church || !time || !member) {
+        showNotification('Por favor, selecione a igreja, o horário vago e informe o nome do membro.', 'Atenção');
         return;
       }
 
-      if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
-      sheetData.occupied[church][time] = member;
+      if (!scriptUrl) {
+        showNotification('A URL de gravação do Apps Script não está configurada. Clique em "Configurar" no topo e informe a URL do seu Web App para gravar na planilha.', 'Aviso de Configuração');
+        return;
+      }
 
-      showNotification(`Nome "${member}" registrado com sucesso para a igreja ${church} às ${time}!`, 'Sucesso');
-      
-      selectChurch.dispatchEvent(new Event('change'));
-      document.getElementById('inputMember').value = '';
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando na planilha...';
+
+      try {
+        const response = await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ church, time, member })
+        });
+
+        if (!sheetData.occupied[church]) sheetData.occupied[church] = {};
+        sheetData.occupied[church][time] = member;
+
+        showNotification(`Nome "${member}" salvo com sucesso para a igreja ${church} às ${time}!`, 'Sucesso');
+        selectChurch.dispatchEvent(new Event('change'));
+        document.getElementById('inputMember').value = '';
+      } catch (err) {
+        console.error("Erro ao salvar:", err);
+        showNotification('Erro ao conectar com o script de gravação da planilha.', 'Erro');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Salvar nome do membro na planilha</span>';
+      }
     });
 
-    // Modais e Fechamento
     const modalTerms = document.getElementById('modalTerms');
     document.getElementById('btnTerms').addEventListener('click', () => modalTerms.classList.remove('hidden'));
     document.getElementById('closeTerms').addEventListener('click', () => modalTerms.classList.add('hidden'));
@@ -473,10 +492,12 @@
 
     const modalSettings = document.getElementById('modalSettings');
     const inputSheetUrl = document.getElementById('inputSheetUrl');
+    const inputScriptUrl = document.getElementById('inputScriptUrl');
     const inputChurchesList = document.getElementById('inputChurchesList');
 
     document.getElementById('btnSettings').addEventListener('click', () => {
       inputSheetUrl.value = sheetUrl;
+      inputScriptUrl.value = scriptUrl;
       inputChurchesList.value = localStorage.getItem('oracao_churches') || sheetData.churches.join(', ');
       modalSettings.classList.remove('hidden');
     });
@@ -484,7 +505,9 @@
     
     document.getElementById('btnSaveSettings').addEventListener('click', () => {
       sheetUrl = inputSheetUrl.value.trim() || DEFAULT_URL;
+      scriptUrl = inputScriptUrl.value.trim();
       localStorage.setItem('oracao_sheet_url', sheetUrl);
+      localStorage.setItem('oracao_script_url', scriptUrl);
       
       const churchesVal = inputChurchesList.value.trim();
       if (churchesVal) {
@@ -498,12 +521,15 @@
 
     document.getElementById('btnResetDefault').addEventListener('click', () => {
       sheetUrl = DEFAULT_URL;
+      scriptUrl = "";
       inputSheetUrl.value = DEFAULT_URL;
+      inputScriptUrl.value = "";
       localStorage.setItem('oracao_sheet_url', DEFAULT_URL);
+      localStorage.removeItem('oracao_script_url');
       localStorage.removeItem('oracao_churches');
       inputChurchesList.value = "ICM ALVORADA, ICM CERÂMICA";
       loadSpreadsheetData();
-      showNotification('Planilha e igrejas restauradas para o padrão.', 'Configuração');
+      showNotification('Configurações restauradas para o padrão.', 'Configuração');
     });
 
     document.getElementById('btnExportTemplate').addEventListener('click', () => {
@@ -517,13 +543,11 @@
       document.body.removeChild(link);
     });
 
-    // Fechar imediatamente a janela do navegador
     document.getElementById('btnClose').addEventListener('click', () => {
       window.close();
       document.body.innerHTML = '<div class="flex items-center justify-center h-screen bg-red-950 text-white"><div class="text-center"><h1 class="text-2xl font-bold mb-2">Janela Fechada</h1><p class="text-sm text-red-200">Você pode fechar esta aba do navegador com segurança.</p></div></div>';
     });
 
-    // Inicialização ao carregar a página
     loadSpreadsheetData();
   </script>
 </body>
