@@ -442,9 +442,8 @@ Leitura e preenchimento integrado à planilha.
     "https://script.google.com/macros/s/AKfycbw_gi9_C9IT5rxNkSTYP94De790ZRuYpFQWwiQVvdvlzdN0YBzMTyv8cufYV7ff4kDzOQ/exec";
 
   const DEFAULT_SHEET_URL =
-    "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
-
-
+  "https://docs.google.com/spreadsheets/d/1w5x3MCNTcVCE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
+    
   let scriptUrl =
     localStorage.getItem('oracao_script_url') ||
     DEFAULT_SCRIPT_URL;
@@ -663,10 +662,7 @@ Leitura e preenchimento integrado à planilha.
 
 
 
-          /*
-           * Outro usuário conseguiu ocupar
-           * o horário antes desta gravação.
-           */
+
 
           
     function loadSpreadsheetData() {
@@ -828,6 +824,7 @@ Leitura e preenchimento integrado à planilha.
       initPeriods();
 
     };
+  };
 
   scriptElem.onerror =
     function() {
