@@ -736,43 +736,77 @@ Leitura e preenchimento integrado à planilha.
       finish();
 
 
+
+
+
+
+
+
       if (
-        data &&
-        data.status === "success" &&
-        Array.isArray(data.churches)
-      ) {
+  data &&
+  data.status === "success" &&
+  Array.isArray(data.churches)
+) {
 
-        sheetData.churches =
-          data.churches;
+  /*
+   * A PLANILHA é a fonte oficial.
+   *
+   * Não fazemos mais mistura com os dados
+   * antigos do localStorage.
+   */
 
-        sheetData.occupied =
-          data.occupied || {};
+  sheetData.churches =
+    data.churches;
 
-        sheetData.periods =
-          data.periods && data.periods.length
-            ? data.periods
-            : sheetData.periods;
+  sheetData.occupied =
+    data.occupied || {};
+
+  sheetData.periods =
+    (
+      data.periods &&
+      data.periods.length
+    )
+      ? data.periods
+      : sheetData.periods;
 
 
-        /*
-         * Os dados locais não substituem os dados
-         * remotos. A planilha é a fonte principal.
-         */
+  /*
+   * Atualiza o cache local somente depois
+   * de receber os dados verdadeiros da planilha.
+   */
 
-        setSyncStatus(
-          "Sincronizado com Planilha",
-          "success"
-        );
+  localStorage.setItem(
+    'oracao_occupied_local',
+    JSON.stringify(
+      sheetData.occupied
+    )
+  );
 
-      } else {
 
-        setSyncStatus(
-          "Modo Local — resposta inválida",
-          "error"
-        );
+  setSyncStatus(
+    "Sincronizado com Planilha",
+    "success"
+  );
 
-      }
 
+} else {
+
+  setSyncStatus(
+    "Erro ao ler a planilha",
+    "error"
+  );
+
+}
+
+
+
+
+
+
+
+
+
+      
 
       initChurches();
       initPeriods();
@@ -1150,25 +1184,36 @@ Leitura e preenchimento integrado à planilha.
 
 
           if (
-            data &&
-            data.status === "success"
-          ) {
+  data &&
+  data.status === "success"
+) {
 
-            resolve(data);
+  resolve(data);
 
-          } else {
+} else if (
+  data &&
+  data.status === "occupied"
+) {
 
-            reject(
-              new Error(
-                data && data.message
-                  ? data.message
-                  : "O Apps Script não confirmou a gravação."
-              )
-            );
+  reject(
+    new Error(
+      "Este horário acabou de ser preenchido por " +
+      data.member +
+      "."
+    )
+  );
 
-          }
+} else {
 
-        };
+  reject(
+    new Error(
+      data && data.message
+        ? data.message
+        : "O Apps Script não confirmou a gravação."
+    )
+  );
+
+}
 
 
       scriptElem.onerror =
