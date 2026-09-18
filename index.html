@@ -1538,11 +1538,35 @@ Leitura e preenchimento integrado à planilha.
     document.getElementById('inputSheetUrl');
 
 
-  document
-    .getElementById('btnSettings')
-    .addEventListener(
-      'click',
-      () => {
+  let settingsClickCount = 0;
+let settingsClickTimer = null;
+
+document
+  .getElementById('btnSettings')
+  .addEventListener(
+    'click',
+    () => {
+
+      settingsClickCount++;
+
+      clearTimeout(settingsClickTimer);
+
+      /*
+       * O contador é zerado se não houver
+       * 7 cliques dentro de 3 segundos.
+       */
+      settingsClickTimer = setTimeout(() => {
+        settingsClickCount = 0;
+      }, 3000);
+
+
+      /*
+       * Abre a configuração somente
+       * após 7 cliques no ícone.
+       */
+      if (settingsClickCount >= 7) {
+
+        settingsClickCount = 0;
 
         inputScriptUrl.value =
           scriptUrl;
@@ -1555,8 +1579,9 @@ Leitura e preenchimento integrado à planilha.
         );
 
       }
-    );
 
+    }
+  );
 
   document
     .getElementById('closeSettings')
