@@ -48,9 +48,14 @@
 
     <h2 class="text-lg font-semibold text-red-800">
       Programação de horários
+      
     </h2>
 
-    
+    <span
+  id="syncStatus"
+  class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">
+  Carregando...
+    </span>
 
     
     
@@ -656,155 +661,219 @@ Leitura e preenchimento integrado à planilha.
    * ============================================================
    */
 
-  function saveToSpreadsheet(
-  church,
-  time,
-  member
-) {
 
-  return new Promise((resolve, reject) => {
-
-    if (!scriptUrl) {
-
-      reject(
-        new Error("URL do Apps Script não configurada.")
-      );
-
-      return;
-    }
-
-    let completed = false;
-
-    const callbackName =
-      'jsonp_save_' +
-      Date.now() +
-      '_' +
-      Math.floor(Math.random() * 100000);
-
-    const scriptElem =
-      document.createElement('script');
-
-    const cleanup = () => {
-
-      if (scriptElem.parentNode) {
-
-        scriptElem.parentNode.removeChild(
-          scriptElem
-        );
-
-      }
-
-      try {
-        delete window[callbackName];
-      } catch (e) {}
-
-    };
-
-    const timeout =
-      setTimeout(() => {
-
-        if (completed) return;
-
-        completed = true;
-
-        cleanup();
-
-        reject(
-          new Error(
-            "Tempo limite excedido ao gravar na planilha."
-          )
-        );
-
-      }, 15000);
-
-    window[callbackName] =
-      function(data) {
-
-        if (completed) return;
-
-        completed = true;
-
-        clearTimeout(timeout);
-
-        cleanup();
-
-        if (
-          data &&
-          data.status === "success"
-        ) {
-
-          resolve(data);
-
-        } else if (
-          data &&
-          data.status === "occupied"
-        ) {
 
           /*
            * Outro usuário conseguiu ocupar
            * o horário antes desta gravação.
            */
 
-          loadSpreadsheetData();
+          
+    function loadSpreadsheetData() {
 
-          reject(
-            new Error(
-              "Este horário acabou de ser preenchido por " +
-              data.member +
-              "."
+  if (!scriptUrl) {
+
+    setSyncStatus(
+      "Modo Local Ativo",
+      "local"
+    );
+
+    initChurches();
+    initPeriods();
+
+    return;
+  }
+
+  setSyncStatus(
+    "Sincronizando...",
+    "local"
+  );
+
+  let completed = false;
+
+  const callbackName =
+    "jsonp_load_" +
+    Date.now() +
+    "_" +
+    Math.floor(Math.random() * 100000);
+
+  const scriptElem =
+    document.createElement("script");
+
+  const finish = () => {
+
+    if (scriptElem.parentNode) {
+      scriptElem.parentNode.removeChild(scriptElem);
+    }
+
+    try {
+      delete window[callbackName];
+    } catch (e) {}
+
+  };
+
+  const timeout =
+    setTimeout(() => {
+
+      if (completed) return;
+
+      completed = true;
+
+      finish();
+
+      console.error(
+        "Tempo limite ao carregar a planilha."
+      );
+
+      setSyncStatus(
+        "Erro ao carregar a planilha",
+        "error"
+      );
+
+      initChurches();
+      initPeriods();
+
+    }, 15000);
+
+  window[callbackName] =
+    function(data) {
+
+      if (completed) return;
+
+      completed = true;
+
+      clearTimeout(timeout);
+
+      finish();
+
+      console.log(
+        "Resposta do Apps Script:",
+        data
+      );
+
+      if (
+        data &&
+        data.status === "success" &&
+        Array.isArray(data.churches)
+      ) {
+
+        /*
+         * A PLANILHA É A FONTE OFICIAL.
+         */
+
+        sheetData.churches =
+          data.churches;
+
+        sheetData.occupied =
+          data.occupied || {};
+
+        if (
+          Array.isArray(data.periods) &&
+          data.periods.length > 0
+        ) {
+
+          sheetData.periods =
+            data.periods;
+
+        }
+
+        /*
+         * Atualiza o cache local
+         * somente após a leitura da planilha.
+         */
+
+        try {
+
+          localStorage.setItem(
+            "oracao_occupied_local",
+            JSON.stringify(
+              sheetData.occupied
             )
           );
 
-        } else {
+        } catch (e) {
 
-          reject(
-            new Error(
-              data && data.message
-                ? data.message
-                : "O Apps Script não confirmou a gravação."
-            )
+          console.warn(
+            "Não foi possível atualizar o cache local.",
+            e
           );
 
         }
 
-      };
-
-    scriptElem.onerror =
-      function() {
-
-        if (completed) return;
-
-        completed = true;
-
-        clearTimeout(timeout);
-
-        cleanup();
-
-        reject(
-          new Error(
-            "Não foi possível acessar o Apps Script."
-          )
+        setSyncStatus(
+          "Sincronizado com Planilha",
+          "success"
         );
 
-      };
+      } else {
 
-    const url =
-      scriptUrl +
-      "?action=save" +
-      "&church=" +
-      encodeURIComponent(church) +
-      "&time=" +
-      encodeURIComponent(time) +
-      "&member=" +
-      encodeURIComponent(member) +
-      "&callback=" +
-      encodeURIComponent(callbackName);
+        console.error(
+          "Resposta inválida do Apps Script:",
+          data
+        );
 
-    scriptElem.src = url;
+        setSyncStatus(
+          "Erro ao ler a planilha",
+          "error"
+        );
 
-    document.body.appendChild(scriptElem);
+      }
 
-  });
+      /*
+       * Preenche as igrejas e períodos
+       * somente depois da leitura.
+       */
+
+      initChurches();
+      initPeriods();
+
+    };
+
+  scriptElem.onerror =
+    function() {
+
+      if (completed) return;
+
+      completed = true;
+
+      clearTimeout(timeout);
+
+      finish();
+
+      console.error(
+        "Erro de conexão com o Apps Script."
+      );
+
+      setSyncStatus(
+        "Erro de conexão com a planilha",
+        "error"
+      );
+
+      initChurches();
+      initPeriods();
+
+    };
+
+  const separator =
+    scriptUrl.indexOf("?") >= 0
+      ? "&"
+      : "?";
+
+  scriptElem.src =
+    scriptUrl +
+    separator +
+    "action=load" +
+    "&callback=" +
+    encodeURIComponent(callbackName);
+
+  console.log(
+    "Solicitando dados da planilha:",
+    scriptElem.src
+  );
+
+  document.body.appendChild(
+    scriptElem
+  );
 
 }
 
