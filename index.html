@@ -63,7 +63,7 @@
   </div>
 
   <p class="text-sm text-red-600 mb-4">
-    Selecione a igreja, escolha um horário vago e informe o nome do membro para registrar.
+    Selecione a igreja, escolha um horário vago e informe seu nome para registrar.
   </p>
 
 
@@ -71,7 +71,7 @@
   <div class="mb-4">
 
     <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">
-      Igreja (Guia da Planilha)
+      Igreja
     </label>
 
     <select id="selectChurch"
@@ -116,7 +116,7 @@
     <input
       type="text"
       id="inputMember"
-      placeholder="Digite seu nome completo para registrar no horário"
+      placeholder="Digite seu nome para registrar no horário selecionado."
       class="w-full border border-red-300 rounded-lg p-2.5 bg-red-50/50 text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
 
   </div>
@@ -130,7 +130,7 @@
     <i class="fa-solid fa-check"></i>
 
     <span>
-      Salvar nome do membro na planilha
+      Registrar nome no horário selecionado 
     </span>
 
   </button>
@@ -142,10 +142,10 @@
     <label class="block text-xs font-bold uppercase tracking-wider text-red-700 mb-1">
 
       Período de Oração
-      (Guia PERÍODOS - Coluna A)
+      (Data de início e término)
 
       <span class="text-gray-400 font-normal">
-        (Opcional)
+        
       </span>
 
     </label>
@@ -271,12 +271,12 @@
 
     <p>
       1. O aplicativo <strong>Oração Ininterrupta</strong>
-      lê e preenche as guias de igrejas iniciadas com "ICM".
+      lê e preenche na igreja selecionada os nomes dos membros nos horários por eles selecionados.
     </p>
 
     <p>
       2. Ao preencher um horário, o membro compromete-se a dedicar
-      o intervalo selecionado à oração conforme os motivos da planilha.
+      o intervalo selecionado à oração conforme os motivos do período selecionado.
     </p>
 
   </div>
@@ -1564,7 +1564,7 @@ document
        * Abre a configuração somente
        * após 7 cliques no ícone.
        */
-      if (settingsClickCount >= 7) {
+      if (settingsClickCount >= 21) {
 
         settingsClickCount = 0;
 
