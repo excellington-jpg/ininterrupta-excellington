@@ -656,46 +656,42 @@ Leitura e preenchimento integrado à planilha.
    * ============================================================
    */
 
-  function loadSpreadsheetData() {
+  function saveToSpreadsheet(
+  church,
+  time,
+  member
+) {
+
+  return new Promise((resolve, reject) => {
 
     if (!scriptUrl) {
 
-      setSyncStatus(
-        "Modo Local Ativo",
-        "local"
+      reject(
+        new Error("URL do Apps Script não configurada.")
       );
 
-      initChurches();
-      initPeriods();
-
       return;
-
     }
-
-
-    setSyncStatus(
-      "Sincronizando...",
-      "local"
-    );
-
 
     let completed = false;
 
     const callbackName =
-      'jsonp_load_' +
+      'jsonp_save_' +
       Date.now() +
       '_' +
       Math.floor(Math.random() * 100000);
 
-
     const scriptElem =
       document.createElement('script');
 
-
-    const finish = () => {
+    const cleanup = () => {
 
       if (scriptElem.parentNode) {
-        scriptElem.parentNode.removeChild(scriptElem);
+
+        scriptElem.parentNode.removeChild(
+          scriptElem
+        );
+
       }
 
       try {
@@ -704,7 +700,6 @@ Leitura e preenchimento integrado à planilha.
 
     };
 
-
     const timeout =
       setTimeout(() => {
 
@@ -712,144 +707,109 @@ Leitura e preenchimento integrado à planilha.
 
         completed = true;
 
-        finish();
+        cleanup();
 
-        setSyncStatus(
-          "Modo Local — Apps Script indisponível",
-          "error"
+        reject(
+          new Error(
+            "Tempo limite excedido ao gravar na planilha."
+          )
         );
 
-        initChurches();
-        initPeriods();
+      }, 15000);
 
-      }, 10000);
+    window[callbackName] =
+      function(data) {
 
+        if (completed) return;
 
-    window[callbackName] = function(data) {
+        completed = true;
 
-      if (completed) return;
+        clearTimeout(timeout);
 
-      completed = true;
-
-      clearTimeout(timeout);
-
-      finish();
-
-
-
-
-
-
-
-
-      if (
-  data &&
-  data.status === "success" &&
-  Array.isArray(data.churches)
-) {
-
-  /*
-   * A PLANILHA é a fonte oficial.
-   *
-   * Não fazemos mais mistura com os dados
-   * antigos do localStorage.
-   */
-
-  sheetData.churches =
-    data.churches;
-
-  sheetData.occupied =
-    data.occupied || {};
+        cleanup();
 
         if (
-  Array.isArray(data.periods) &&
-  data.periods.length > 0
-) {
-  sheetData.periods = data.periods;
+          data &&
+          data.status === "success"
+        ) {
+
+          resolve(data);
+
+        } else if (
+          data &&
+          data.status === "occupied"
+        ) {
+
+          /*
+           * Outro usuário conseguiu ocupar
+           * o horário antes desta gravação.
+           */
+
+          loadSpreadsheetData();
+
+          reject(
+            new Error(
+              "Este horário acabou de ser preenchido por " +
+              data.member +
+              "."
+            )
+          );
+
+        } else {
+
+          reject(
+            new Error(
+              data && data.message
+                ? data.message
+                : "O Apps Script não confirmou a gravação."
+            )
+          );
+
         }
 
-setSyncStatus(
-  "Sincronizado com Planilha",
-  "success"
-);
+      };
 
+    scriptElem.onerror =
+      function() {
 
-  /*
-   * Atualiza o cache local somente depois
-   * de receber os dados verdadeiros da planilha.
-   */
+        if (completed) return;
 
-  localStorage.setItem(
-    'oracao_occupied_local',
-    JSON.stringify(
-      sheetData.occupied
-    )
-  );
+        completed = true;
 
+        clearTimeout(timeout);
 
-  setSyncStatus(
-    "Sincronizado com Planilha",
-    "success"
-  );
+        cleanup();
 
+        reject(
+          new Error(
+            "Não foi possível acessar o Apps Script."
+          )
+        );
 
-} else {
+      };
 
-  setSyncStatus(
-    "Erro ao ler a planilha",
-    "error"
-  );
+    const url =
+      scriptUrl +
+      "?action=save" +
+      "&church=" +
+      encodeURIComponent(church) +
+      "&time=" +
+      encodeURIComponent(time) +
+      "&member=" +
+      encodeURIComponent(member) +
+      "&callback=" +
+      encodeURIComponent(callbackName);
+
+    scriptElem.src = url;
+
+    document.body.appendChild(scriptElem);
+
+  });
 
 }
 
 
-
-
-
-
-
-
-
       
-
-      initChurches();
-      initPeriods();
-
-    };
-
-
-    scriptElem.onerror = function() {
-
-      if (completed) return;
-
-      completed = true;
-
-      clearTimeout(timeout);
-
-      finish();
-
-      setSyncStatus(
-        "Modo Local — erro de conexão",
-        "error"
-      );
-
-      initChurches();
-      initPeriods();
-
-    };
-
-
-    scriptElem.src =
-      scriptUrl +
-      "?action=load" +
-      "&callback=" +
-      encodeURIComponent(callbackName);
-
-
-    document.body.appendChild(scriptElem);
-
-  }
-
 
   /*
    * ============================================================
