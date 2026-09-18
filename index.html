@@ -434,7 +434,7 @@ Leitura e preenchimento integrado à planilha.
    */
 
   const DEFAULT_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbz1xChxsGbppkYw3EXts8WyC9kyqiz16_yx9hcciqRHbmSEiq9GX18LiCfnsit46-8Yqg/exec";
+    "https://script.google.com/macros/s/AKfycbw_gi9_C9IT5rxNkSTYP94De790ZRuYpFQWwiQVvdvlzdN0YBzMTyv8cufYV7ff4kDzOQ/exec";
 
   const DEFAULT_SHEET_URL =
     "https://docs.google.com/spreadsheets/d/1w5x3MCNTtCVE0y2vTMD2A2mupiMfBxaExEqFfmjGIck/edit?usp=drivesdk";
@@ -658,160 +658,247 @@ Leitura e preenchimento integrado à planilha.
 
   function loadSpreadsheetData() {
 
-    if (!scriptUrl) {
+  if (!scriptUrl) {
 
-      setSyncStatus(
-        "Modo Local Ativo",
-        "local"
-      );
+    sheetData = {
+      churches: [
+        "ICM ALVORADA",
+        "ICM CERÂMICA",
+        "ICM CENTRO",
+        "ICM VILA NOVA"
+      ],
+      occupied: {},
+      periods: []
+    };
 
-      initChurches();
-      initPeriods();
+    document.getElementById("syncStatus").textContent =
+      "Modo local";
+
+    return;
+  }
+
+
+  var callbackName =
+    "oracaoLoad_" + Date.now();
+
+  var script = document.createElement("script");
+
+  var timeout = setTimeout(function () {
+
+    try {
+      document.body.removeChild(script);
+    } catch (e) {}
+
+    document.getElementById("syncStatus").textContent =
+      "Modo local";
+
+  }, 10000);
+
+
+  window[callbackName] = function(data) {
+
+    clearTimeout(timeout);
+
+    try {
+      document.body.removeChild(script);
+    } catch (e) {}
+
+
+    if (!data || data.status === "error") {
+
+      document.getElementById("syncStatus").textContent =
+        "Erro na sincronização";
 
       return;
-
     }
 
 
-    setSyncStatus(
-      "Sincronizando...",
-      "local"
-    );
+    /*
+     * Quando a planilha está disponível,
+     * ela passa a ser a fonte principal dos dados.
+     */
+
+    sheetData.churches =
+      data.churches || [];
+
+    sheetData.occupied =
+      data.occupied || {};
+
+    sheetData.periods =
+      data.periods || [];
 
 
-    let completed = false;
-
-    const callbackName =
-      'jsonp_load_' +
-      Date.now() +
-      '_' +
-      Math.floor(Math.random() * 100000);
+    document.getElementById("syncStatus").textContent =
+      "Sincronizado com Planilha";
 
 
-    const scriptElem =
-      document.createElement('script');
+    populateChurches();
+    populatePeriods();
+
+  };
 
 
-    const finish = () => {
+  script.onerror = function() {
 
-      if (scriptElem.parentNode) {
-        scriptElem.parentNode.removeChild(scriptElem);
-      }
+    clearTimeout(timeout);
+
+    try {
+      document.body.removeChild(script);
+    } catch (e) {}
+
+    document.getElementById("syncStatus").textContent =
+      "Erro na sincronização";
+  };
+
+
+  script.src =
+    scriptUrl +
+    "?action=load&callback=" +
+    encodeURIComponent(callbackName) +
+    "&_=" +
+    Date.now();
+
+
+  document.body.appendChild(script);
+}
+
+
+
+
+
+
+    function saveToSpreadsheet(church, time, member) {
+
+  return new Promise(function(resolve, reject) {
+
+    if (!scriptUrl) {
+      resolve({
+        status: "local"
+      });
+      return;
+    }
+
+
+    var callbackName =
+      "oracaoSave_" + Date.now();
+
+
+    var script =
+      document.createElement("script");
+
+
+    var finished = false;
+
+
+    var timeout = setTimeout(function() {
+
+      if (finished) return;
+
+      finished = true;
 
       try {
-        delete window[callbackName];
+        document.body.removeChild(script);
       } catch (e) {}
 
-    };
+      delete window[callbackName];
 
+      reject(
+        new Error(
+          "A planilha não confirmou a gravação."
+        )
+      );
 
-    const timeout =
-      setTimeout(() => {
-
-        if (completed) return;
-
-        completed = true;
-
-        finish();
-
-        setSyncStatus(
-          "Modo Local — Apps Script indisponível",
-          "error"
-        );
-
-        initChurches();
-        initPeriods();
-
-      }, 10000);
+    }, 10000);
 
 
     window[callbackName] = function(data) {
 
-      if (completed) return;
+      if (finished) return;
 
-      completed = true;
+      finished = true;
 
       clearTimeout(timeout);
 
-      finish();
+
+      try {
+        document.body.removeChild(script);
+      } catch (e) {}
+
+
+      delete window[callbackName];
 
 
       if (
         data &&
-        data.status === "success" &&
-        Array.isArray(data.churches)
+        data.status === "success"
       ) {
 
-        sheetData.churches =
-          data.churches;
-
-        sheetData.occupied =
-          data.occupied || {};
-
-        sheetData.periods =
-          data.periods && data.periods.length
-            ? data.periods
-            : sheetData.periods;
-
-
-        /*
-         * Os dados locais não substituem os dados
-         * remotos. A planilha é a fonte principal.
-         */
-
-        setSyncStatus(
-          "Sincronizado com Planilha",
-          "success"
-        );
+        resolve(data);
 
       } else {
 
-        setSyncStatus(
-          "Modo Local — resposta inválida",
-          "error"
+        reject(
+          new Error(
+            data && data.message
+              ? data.message
+              : "Erro ao gravar na planilha."
+          )
         );
-
       }
-
-
-      initChurches();
-      initPeriods();
-
     };
 
 
-    scriptElem.onerror = function() {
+    script.onerror = function() {
 
-      if (completed) return;
+      if (finished) return;
 
-      completed = true;
+      finished = true;
 
       clearTimeout(timeout);
 
-      finish();
 
-      setSyncStatus(
-        "Modo Local — erro de conexão",
-        "error"
+      try {
+        document.body.removeChild(script);
+      } catch (e) {}
+
+      delete window[callbackName];
+
+
+      reject(
+        new Error(
+          "Não foi possível acessar a planilha."
+        )
       );
-
-      initChurches();
-      initPeriods();
-
     };
 
 
-    scriptElem.src =
+    var url =
       scriptUrl +
-      "?action=load" +
+      "?action=save" +
+      "&church=" +
+      encodeURIComponent(church) +
+      "&time=" +
+      encodeURIComponent(time) +
+      "&member=" +
+      encodeURIComponent(member) +
       "&callback=" +
-      encodeURIComponent(callbackName);
+      encodeURIComponent(callbackName) +
+      "&_=" +
+      Date.now();
 
 
-    document.body.appendChild(scriptElem);
+    script.src = url;
 
-  }
+    document.body.appendChild(script);
 
+  });
+    }
+
+
+
+
+
+    
 
   /*
    * ============================================================
@@ -1219,199 +1306,161 @@ Leitura e preenchimento integrado à planilha.
    * ============================================================
    */
 
-  document
-    .getElementById('btnSubmit')
-    .addEventListener(
-      'click',
-      async () => {
 
-        const church =
-          selectChurch.value;
 
-        const time =
-          selectTime.value;
+    document.getElementById('btnSubmit').addEventListener('click', async () => {
 
-        const member =
-          document
-            .getElementById('inputMember')
-            .value
-            .trim();
+  const church =
+    document.getElementById('selectChurch').value;
 
+  const time =
+    document.getElementById('selectTime').value;
 
-        if (
-          !church ||
-          !time ||
-          !member
-        ) {
+  const member =
+    document.getElementById('inputMember').value.trim();
 
-          showNotification(
-            'Por favor, selecione a igreja, o horário vago e informe o nome do membro.',
-            'Atenção'
-          );
 
-          return;
+  if (!church) {
+    showNotification(
+      "Selecione uma igreja.",
+      "Atenção"
+    );
+    return;
+  }
 
-        }
 
+  if (!time) {
+    showNotification(
+      "Selecione um horário.",
+      "Atenção"
+    );
+    return;
+  }
 
-        const btn =
-          document.getElementById('btnSubmit');
 
+  if (!member) {
+    showNotification(
+      "Informe o nome.",
+      "Atenção"
+    );
+    return;
+  }
 
-        btn.disabled = true;
 
-        btn.innerHTML =
-          '<i class="fa-solid fa-spinner fa-spin"></i>' +
-          '<span>Gravando na planilha...</span>';
+  const button =
+    document.getElementById('btnSubmit');
 
 
-        try {
+  /*
+   * Evita dois cliques durante a gravação.
+   */
 
-          /*
-           * A planilha é a fonte oficial.
-           * Não exibimos sucesso antes da confirmação.
-           */
+  const originalText =
+    button.innerHTML;
 
-          if (scriptUrl) {
+  button.disabled = true;
 
-            const result =
-              await saveToSpreadsheet(
-                church,
-                time,
-                member
-              );
+  button.innerHTML =
+    '<i class="fa-solid fa-spinner fa-spin"></i> Gravando...';
 
 
-            /*
-             * Somente depois da confirmação
-             * atualizamos a interface local.
-             */
+  try {
 
-            if (!sheetData.occupied[church]) {
+    /*
+     * PRIMEIRO grava na planilha
+     * e aguarda a confirmação.
+     */
 
-              sheetData.occupied[church] = {};
+    const result =
+      await saveToSpreadsheet(
+        church,
+        time,
+        member
+      );
 
-            }
 
+    /*
+     * Só depois da confirmação remota
+     * atualiza o estado local.
+     */
 
-            sheetData.occupied[church][time] =
-              member;
+    if (!sheetData.occupied[church]) {
+      sheetData.occupied[church] = {};
+    }
 
 
-            /*
-             * Cópia local apenas como cache.
-             */
+    sheetData.occupied[church][time] =
+      member;
 
-            localStorage.setItem(
-              'oracao_occupied_local',
-              JSON.stringify(
-                sheetData.occupied
-              )
-            );
 
-
-            setSyncStatus(
-              "Sincronizado com Planilha",
-              "success"
-            );
-
-
-            showNotification(
-              `Nome "${member}" registrado com sucesso na planilha para ${church} às ${time}.`,
-              'Gravação concluída'
-            );
-
-
-            selectChurch.dispatchEvent(
-              new Event('change')
-            );
-
-
-            document
-              .getElementById('inputMember')
-              .value = "";
-
-
-          } else {
-
-            /*
-             * Modo local somente quando não existe
-             * URL do Apps Script.
-             */
-
-            if (!sheetData.occupied[church]) {
-
-              sheetData.occupied[church] = {};
-
-            }
-
-
-            sheetData.occupied[church][time] =
-              member;
-
-
-            localStorage.setItem(
-              'oracao_occupied_local',
-              JSON.stringify(
-                sheetData.occupied
-              )
-            );
-
-
-            showNotification(
-              `Nome "${member}" foi salvo somente neste dispositivo.`,
-              'Modo Local'
-            );
-
-
-            selectChurch.dispatchEvent(
-              new Event('change')
-            );
-
-
-            document
-              .getElementById('inputMember')
-              .value = "";
-
-          }
-
-
-        } catch (err) {
-
-          console.error(
-            "Erro ao gravar:",
-            err
-          );
-
-
-          setSyncStatus(
-            "Erro na sincronização",
-            "error"
-          );
-
-
-          showNotification(
-            "O nome NÃO foi confirmado na planilha.\n\n" +
-            "Verifique a implantação do Apps Script e tente novamente.\n\n" +
-            "Detalhes: " +
-            err.message,
-            "Erro ao gravar"
-          );
-
-
-        } finally {
-
-          btn.disabled = false;
-
-          btn.innerHTML =
-            '<i class="fa-solid fa-check"></i>' +
-            '<span>Salvar nome do membro na planilha</span>';
-
-        }
-
-      }
+    localStorage.setItem(
+      'oracao_occupied_local',
+      JSON.stringify(
+        sheetData.occupied
+      )
     );
 
+
+    document.getElementById(
+      "syncStatus"
+    ).textContent =
+      "Sincronizado com Planilha";
+
+
+    showNotification(
+      `Nome "${member}" registrado com sucesso para a igreja ${church} às ${time}!`,
+      "Sucesso"
+    );
+
+
+    /*
+     * Atualiza os horários para que o
+     * horário recém-utilizado fique indisponível.
+     */
+
+    populateTimeSlots();
+
+
+    document.getElementById(
+      'inputMember'
+    ).value = "";
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao gravar:",
+      error
+    );
+
+
+    /*
+     * IMPORTANTE:
+     * não informa que foi salvo quando
+     * a planilha não confirmou.
+     */
+
+    showNotification(
+      "Não foi possível registrar o nome na planilha. " +
+      "Verifique a conexão e tente novamente.",
+      "Erro"
+    );
+
+
+  } finally {
+
+    button.disabled = false;
+
+    button.innerHTML =
+      originalText;
+  }
+
+});
+
+
+
+
+    
 
   /*
    * ============================================================
