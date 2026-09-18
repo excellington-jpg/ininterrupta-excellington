@@ -761,13 +761,17 @@ Leitura e preenchimento integrado à planilha.
   sheetData.occupied =
     data.occupied || {};
 
-  sheetData.periods =
-    (
-      data.periods &&
-      data.periods.length
-    )
-      ? data.periods
-      : sheetData.periods;
+        if (
+  Array.isArray(data.periods) &&
+  data.periods.length > 0
+) {
+  sheetData.periods = data.periods;
+        }
+
+setSyncStatus(
+  "Sincronizado com Planilha",
+  "success"
+);
 
 
   /*
